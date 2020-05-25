@@ -1,0 +1,25 @@
+2
+./Tests/MechanicsTests/BagRefill.save
+turn 0 B 5
+save afterBagRefill.save
+2
+./Tests/MechanicsTests/AddFactoryToRow.save
+turn 0 U 5
+save afterAddFactoryToRow.save
+2
+./Tests/MechanicsTests/GameEnd.save
+turn 0 R 2
+2
+./Tests/MechanicsTests/GameEndEqualPoints.save
+turn 0 R 2
+2
+./Tests/MechanicsTests/GameEndEqualPointsAndRows.save
+turn 0 R 2
+2
+./Tests/MechanicsTests/RoundEnd.save
+turn 0 R 2
+save afterRoundEnd.save
+2
+./Tests/MechanicsTests/FullBrokenTilesGetFirstPlayerToken.save
+turn 0 R 2
+save afterFullBrokenTilesGetFirstPlayerToken.save

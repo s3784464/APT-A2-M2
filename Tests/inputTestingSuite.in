@@ -1,0 +1,18 @@
+1
+name one
+name one
+name two
+save duplicateName.save
+2
+./Tests/inputTest.save
+this is an invalid command
+turnss 0 R 2
+turn A A A
+turn 0 1 2
+turn -1 R 2
+turn 0 Z 2
+turn 0 R 7
+turn 0 R 3
+turn 0 U 4
+turn 0 U 6
+save afterInputTesting.save
