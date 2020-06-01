@@ -784,7 +784,7 @@ void Persistence::validLoadFile()
     }
   }
   loadFile.close();
-  if (!linesExceeded && lineCount == LOAD_FILE_LENGTH)
+  if (lineCount == LOAD_FILE_LENGTH)
   {
     correctFileLength = true;
   }

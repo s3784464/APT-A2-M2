@@ -31,6 +31,8 @@ class Factory {
     Row tiles;
     // the factory number
     int number;
+    
+    std::string tileColour(char colour);
 };
 
 #endif //FACTORY_H

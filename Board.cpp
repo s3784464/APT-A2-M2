@@ -48,7 +48,6 @@ void Board::addFactoryTilesToRow(Row factoryRow, int rowNumber, Lid *lid)
         factoryRow.erase(factoryRow.begin());
     }
 
-
     Row tempRow = rows.at(rowNumber - 1); //we want to keep the existing tiles that aren't "no_tile" there
     rows.at(rowNumber - 1).clear();       //clears the row
 
@@ -82,29 +81,35 @@ void Board::addFactoryTilesToRow(Row factoryRow, int rowNumber, Lid *lid)
 void Board::addBrokenTile(Tile tile, Lid *lid)
 {
     if (broken_tiles.size() == MAX_BROKEN_TILES)
-    {   
-        if(tile.getColour() != first_player) {
-        lid->addBack(new Tile(&tile));
-        } else {
+    {
+        if (tile.getColour() != first_player)
+        {
+            lid->addBack(new Tile(&tile));
+        }
+        else
+        {
             // If the first player token is to be added but there is not enough
             // room, move the tile in the last floor slot to the lid and replace
             // it with the first_player tile
-            Tile* replace = new Tile(broken_tiles.back());
+            Tile *replace = new Tile(broken_tiles.back());
             // for safety, set the next value to nullptr here to stop issues on lid deletion
             replace->setNext(nullptr);
             broken_tiles.pop_back();
             lid->addBack(replace);
             broken_tiles.push_back(tile);
         }
-    } else {
+    }
+    else
+    {
         broken_tiles.push_back(tile);
     }
-    
 }
 
 // Used to move tiles straight from a factory to the broken tiles
-void Board::moveTilesToBrokenTiles(Row row, Lid *lid) {
-    for(unsigned int i = 0; i < row.size(); ++i) {
+void Board::moveTilesToBrokenTiles(Row row, Lid *lid)
+{
+    for (unsigned int i = 0; i < row.size(); ++i)
+    {
         addBrokenTile(row[i], lid);
     }
     row.clear();
@@ -201,7 +206,7 @@ int Board::endRound(Lid *lid)
             }
             // empty the row
             rows[i].clear();
-            
+
             // fill the row with empty tile placeholders
             rows[i] = initialiseRow(i);
         }
@@ -338,14 +343,14 @@ int Board::calculateCompleteLine(int lineNumber)
         {
             fullRow = false;
         }
-        
+
         ++i;
     }
     if (fullRow)
-        {
-            ++completeRows;
-            points += POINTS_FULL_ROW;
-        }
+    {
+        ++completeRows;
+        points += POINTS_FULL_ROW;
+    }
     i = 0;
     while (fullColumn && i < NUM_ROWS)
     {
@@ -419,6 +424,44 @@ int Board::getCompleteRows()
     return completeRows;
 }
 
+
+std::string Board::tileColour(char colour)
+{
+    std::string stringColour(1, colour);
+    std::string colourTile = "";
+
+    //red
+    if (colour == 'R' || colour == 'r')
+    {
+        colourTile = "\u001b[31m" + stringColour + "\u001b[0m";
+    }
+    //yellow
+    else if (colour == 'Y' || colour == 'y')
+    {
+        colourTile = "\u001b[33m" + stringColour + "\u001b[0m";
+    }
+    //blue
+    else if (colour == 'B' || colour == 'b')
+    {
+        colourTile = "\u001b[34m" + stringColour + "\u001b[0m";
+    }
+    //light blue
+    else if (colour == 'L' || colour == 'l')
+    {
+        colourTile = "\u001b[36m" + stringColour + "\u001b[0m";
+    }
+    //black
+    else if (colour == 'U' || colour == 'u')
+    {
+        colourTile = "\u001b[30m" + stringColour + "\u001b[0m";
+    }
+    else{
+        colourTile = stringColour + "\u001b[0m";
+    }
+
+    return colourTile;
+}
+
 void Board::printBoard()
 {
     for (int i = 0; i != NUM_ROWS; i++)
@@ -434,7 +477,7 @@ void Board::printBoard()
         // Prints tiles in each row
         for (unsigned int k = rows[i].size(); k > 0; k--)
         {
-            std::cout << rows.at(i).at(k - 1).printColour() << " ";
+            std::cout << tileColour(rows.at(i).at(k - 1).printColour()) << " ";
         }
 
         //separate storage from mosaic
@@ -443,7 +486,7 @@ void Board::printBoard()
         //print mosaic row tiles;
         for (int j = 0; j != NUM_MOSAIC_COLUMNS; j++)
         {
-            std::cout << mosaic[i][j].printColour() << " ";
+            std::cout << tileColour(mosaic[i][j].printColour()) << " ";
         }
 
         //go to next row/line
@@ -453,7 +496,7 @@ void Board::printBoard()
     std::cout << "6: broken:";
     for (Tile tile : broken_tiles)
     {
-        std::cout << " " << tile.printColour();
+        std::cout << " " << tileColour(tile.printColour());
     }
     std::cout << std::endl;
 }

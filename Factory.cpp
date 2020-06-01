@@ -75,6 +75,43 @@ void Factory::printTiles()
 {
     for (Tile tile : tiles)
     {
-        std::cout << tile.printColour() << " ";
+        std::cout << tileColour(tile.printColour()) << " ";
     }
+}
+
+std::string Factory::tileColour(char colour)
+{
+    std::string stringColour(1, colour);
+    std::string colourTile = "";
+
+    //red
+    if (colour == 'R' || colour == 'r')
+    {
+        colourTile = "\u001b[31m" + stringColour + "\u001b[0m";
+    }
+    //yellow
+    else if (colour == 'Y' || colour == 'y')
+    {
+        colourTile = "\u001b[33m" + stringColour + "\u001b[0m";
+    }
+    //blue
+    else if (colour == 'B' || colour == 'b')
+    {
+        colourTile = "\u001b[34m" + stringColour + "\u001b[0m";
+    }
+    //light blue
+    else if (colour == 'L' || colour == 'l')
+    {
+        colourTile = "\u001b[36m" + stringColour + "\u001b[0m";
+    }
+    //black
+    else if (colour == 'U' || colour == 'u')
+    {
+        colourTile = "\u001b[30m" + stringColour + "\u001b[0m";
+    }
+    else{
+        colourTile = stringColour + "\u001b[0m";
+    }
+
+    return colourTile;
 }

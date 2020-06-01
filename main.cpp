@@ -120,7 +120,7 @@ void credits()
               << "------------------" << std::endl
               << "Student Name: \t\tStudent Number: \tStudent Email:" << std::endl
               << "Jonathon Mitterbacher \ts3784464 \t\ts3784464@student.rmit.edu.au" << std::endl
-              << "Michael Weston \t\ts3541742 \t\ts541742@student.rmit.edu.au" << std::endl
+              << "Michael Weston \t\ts3541742 \t\ts3541742@student.rmit.edu.au" << std::endl
               << "Sebastian Wisidagama \ts3769969 \t\ts3769969@student.rmit.edu.au" << std::endl
               << std::endl;
 }
@@ -185,6 +185,10 @@ bool loadGame()
     }
     std::string saveFileName;
     std::cin >> saveFileName;
+
+    //TESTING
+    saveFileName = "SaveGames/" + saveFileName;
+    
     if(mode == TEST) {
         std::cout << "Testing " << saveFileName << std::endl;
     }

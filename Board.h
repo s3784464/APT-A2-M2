@@ -106,6 +106,9 @@ class Board {
     int brokenTilePoints[7] = {1, 1, 2, 2, 2, 3, 3};
     // integer to hold the amount of completed rows on the board
     int completeRows;
+
+    //method to print tiles with their appropriate colour
+    std::string tileColour(char colour);
 };
 
 #endif //BOARD_H
