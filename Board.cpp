@@ -493,7 +493,7 @@ void Board::printBoard()
         std::cout << std::endl;
     }
 
-    std::cout << "6: broken:";
+    std::cout << "broken:";
     for (Tile tile : broken_tiles)
     {
         std::cout << " " << tileColour(tile.printColour());
