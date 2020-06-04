@@ -46,6 +46,8 @@ class GameState {
     int getTotalFactories();
     // Print the board of every player to console
     void printBoards();
+    //returns true if using 2 centre factories
+    bool twoCentreFactories();
 
     // Checks whether the conditions for a round to end have been met
     bool roundFinished();
@@ -85,8 +87,6 @@ class GameState {
     int centreFactories = -1;
     // Number of factories + centre factories
     int totalFactories = -1;
-    // Whether there are two centre factories
-    bool twoCentreFactories = false;
 
 
     // Pseudorandomly generates an order for the bag based on the seed
@@ -98,6 +98,7 @@ class GameState {
     bool checkEmptyBag();
     // Fills the bag from box lid
     void refillBag();
+    
 };
 
 #endif //GAME_STATE_H

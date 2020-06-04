@@ -410,8 +410,16 @@ bool runGame(GameState *gameState)
                     {
                         if (!gameExit)
                         {
-                            std::cout << "\u2612 Turn unsuccessful. Command order is [Factory] [Colour] [Row]" << std::endl
-                                      << "> ";
+                            if (gameState->twoCentreFactories())
+                            {
+                                std::cout << "\u2612 Turn unsuccessful. Format is turn [Factory] [Colour] [Row] [CentreFactory]" << std::endl
+                                          << "> ";
+                            }
+                            else
+                            {
+                                std::cout << "\u2612 Turn unsuccessful. Format is turn [Factory] [Colour] [Row]" << std::endl
+                                          << "> ";
+                            }
                         }
                     }
                 }
@@ -440,11 +448,14 @@ bool runGame(GameState *gameState)
                 }
                 else if (command == help)
                 {
-                    //TODO
-                    //help commands
+                    std::string turn = "turn [Factory] [Colour] [Row]";
+                    if (gameState->twoCentreFactories())
+                    {
+                        turn = "turn [Factory] [Colour] [Row] [CentreFactory]";
+                    }
                     std::cout << "Available commands are: " << std::endl
-                              << "Turn [factory] [colour] [row] [centreFactory]" << std::endl
-                              << "save [filename]" << std::endl
+                              <<  turn << std::endl
+                              << "save [FileName]" << std::endl
                               << "boards" << std::endl
                               << "> ";
                 }

@@ -4,10 +4,6 @@ GameState::GameState(int numPlayers, int centreFactories)
 {
     this->numPlayers = numPlayers;
     this->centreFactories = centreFactories;
-    if(centreFactories == 2)
-    {
-        this->twoCentreFactories = true;
-    }
     this->totalFactories = NUM_FACTORIES + centreFactories;
     // Initialises all game pieces
     bag = new Bag();
@@ -392,4 +388,14 @@ void GameState::printBoards()
         boards[i]->printBoard();
         std::cout << std::endl;
     }
+}
+
+bool GameState::twoCentreFactories()
+{
+    bool twoFactories = false;
+    if(factories.size() == MAX_FACTORIES)
+    {
+        twoFactories = true;
+    }
+    return twoFactories;
 }
