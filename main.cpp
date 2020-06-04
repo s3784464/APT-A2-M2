@@ -125,7 +125,7 @@ void menu()
                 {
                     if (mode != TEST)
                     {
-                        std::cout << "Invalid choice. Please select again." << std::endl;
+                        std::cout << "Invalid choice \u2639 . Please select again." << std::endl;
                     }
                 }
             }
@@ -171,7 +171,7 @@ bool newGame()
         }
         else
         {
-            std::cout << "Enter a value from 2 to 4 (" << tempNumPlayers << " is invalid)" << std::endl
+            std::cout << "Enter a value from 2 to 4 (" << tempNumPlayers << " is invalid \u2639 )" << std::endl
                       << "> ";
         }
     }
@@ -208,7 +208,7 @@ bool newGame()
                     if (playerName == playerNames[i])
                     {
                         validName = false;
-                        std::cout << "Player name already taken" << std::endl;
+                        std::cout << "Player name already taken \u2639 " << std::endl;
                     }
                     ++i;
                 }
@@ -242,7 +242,7 @@ bool newGame()
         }
         else
         {
-            std::cout << "Enter a value of 1 or 2 (" << tempValidFactories << " is invalid)" << std::endl
+            std::cout << "Enter a value of 1 or 2 (" << tempValidFactories << " is invalid \u2639 )" << std::endl
                       << "> ";
         }
     }
@@ -264,7 +264,6 @@ bool newGame()
         gameState->setSeedEntered(seedEntered, seed);
         gameState->initializeNewGame(playerNames);
         //start game
-        std::cout << "gameState functions finished, running game" << std::endl;
         gameExit = runGame(gameState);
         delete gameState;
     }
@@ -397,7 +396,8 @@ bool runGame(GameState *gameState)
                 {
                     std::cin.clear();
                     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-                    std::cout << "Invalid command. Valid commands are: turn, save, boards, help" << std::endl
+                    std::cout << "\u2612 Invalid command." << std::endl
+                              << "Valid commands are: turn, save, boards, help" << std::endl
                               << "> ";
                 }
                 if (command == turn)
@@ -410,7 +410,7 @@ bool runGame(GameState *gameState)
                     {
                         if (!gameExit)
                         {
-                            std::cout << "Turn unsuccessful. Command order is [Factory] [Colour] [Row]" << std::endl
+                            std::cout << "\u2612 Turn unsuccessful. Command order is [Factory] [Colour] [Row]" << std::endl
                                       << "> ";
                         }
                     }
@@ -433,7 +433,7 @@ bool runGame(GameState *gameState)
                     {
                         if (!gameExit)
                         {
-                            std::cout << "Save unsuccessful" << std::endl
+                            std::cout << "\u2612 Save unsuccessful" << std::endl
                                       << "> ";
                         }
                     }
@@ -461,8 +461,8 @@ bool runGame(GameState *gameState)
 
         if (!gameExit && !testComplete)
         {
-            //changes turn to next player, keeping it within NUM_PLAYERS
-            playerTurn = (playerTurn + 1) % NUM_PLAYERS;
+            //changes turn to next player, keeping it within numPlayers
+            playerTurn = (playerTurn + 1) % numPlayers;
             gameState->setTurn(playerTurn);
             roundFinished = gameState->roundFinished();
             if (roundFinished)
@@ -483,10 +483,10 @@ bool runGame(GameState *gameState)
                 std::cout << "= Game End Bonus Points =" << std::endl;
                 for (Player *p : gameState->getPlayers())
                 {
-                    std::cout << p->getName() << ": " << p->getPointsGained() << " points" << std::endl;
+                    std::cout << p->getName() << ":\t" << p->getPointsGained() << " points" << std::endl;
                 }
                 std::cout << "====== Final Score ======" << std::endl;
-                for (int i = 0; i != NUM_PLAYERS; ++i)
+                for (int i = 0; i < numPlayers; ++i)
                 {
                     std::cout << gameState->getPlayers()[i]->getName() << ": " << gameState->getPlayers()[i]->getPoints() << " points" << std::endl;
                     std::cout << "Rows complete: " << gameState->getBoards()[i]->getCompleteRows() << std::endl;
@@ -705,7 +705,7 @@ bool validColourInput(char colourChar, Colour *colour)
 void printRoundResults(GameState *gameState)
 {
     //Print current board for players
-    for (int i = 0; i != NUM_PLAYERS; ++i)
+    for (int i = 0; i < numPlayers; ++i)
     {
         std::cout << "\nMosaic for " << gameState->getPlayers()[i]->getName() << ':' << std::endl;
         gameState->getBoards()[i]->printBoard();
@@ -737,11 +737,11 @@ void checkForCommands(int argc, char **argv)
         }
         catch (const std::invalid_argument &e)
         {
-            std::cout << "Seed entered was not a number, discarding seed" << std::endl;
+            std::cout << "\u2612Seed entered was not a number, discarding seed" << std::endl;
         }
         catch (const std::out_of_range &e)
         {
-            std::cout << "Seed entered was not in integer range, discarding seed" << std::endl;
+            std::cout << "\u2612Seed entered was not in integer range, discarding seed" << std::endl;
         }
     }
     if (argc >= 3)

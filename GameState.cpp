@@ -73,10 +73,12 @@ void GameState::populateFactories()
 {
     // Factory 0 gets the first_player tile as its only tile
     factories[0]->addTile(Tile(first_player));
-    if(twoCentreFactories)
-    {
-        factories[1]->addTile(Tile(first_player));
-    }
+
+    //WIP firstPlayer
+    // if(twoCentreFactories)
+    // {
+    //     factories[1]->addTile(Tile(first_player));
+    // }
 
     // loop initialised to i = 1 as factory 0 has already been dealt with
     for (int i = centreFactories; i < totalFactories; ++i)
@@ -151,7 +153,7 @@ bool GameState::gameFinished()
 {
     bool gameFinished = false;
     int i = 0;
-    while (!gameFinished && i < NUM_PLAYERS)
+    while (!gameFinished && i < numPlayers)
     {
         gameFinished = boards[i]->checkGameEnd();
         ++i;
@@ -163,13 +165,13 @@ int GameState::endGame()
 {
     int winningPoints = DRAW;
     int winner = DRAW;
-    for (int i = 0; i < NUM_PLAYERS; ++i)
+    for (int i = 0; i < numPlayers; ++i)
     {
         players[i]->setPointsGained(boards[i]->endGame());
         players[i]->addPoints(players[i]->getPointsGained());
     }
 
-    for (int i = 0; i < NUM_PLAYERS; ++i)
+    for (int i = 0; i < numPlayers; ++i)
     {
         if (players[i]->getPoints() > winningPoints)
         {
@@ -187,7 +189,7 @@ int GameState::endGame()
     if (winner == DRAW)
     {
         int winningRows = DRAW;
-        for (int i = 0; i < NUM_PLAYERS; ++i)
+        for (int i = 0; i < numPlayers; ++i)
         {
             if (players[i]->getPoints() == winningPoints)
             {
@@ -213,7 +215,7 @@ void GameState::endRound()
     // First player token is always accounted for, but for safety if is somehow
     // 'lost', set the turn to the first player.
     int nextRoundFirst = 0;
-    for (unsigned int i = 0; i < NUM_PLAYERS; ++i)
+    for (int i = 0; i < numPlayers; ++i)
     {
         // Checks to see which player has the first player token
         if (boards[i]->hasFirstPlayerToken())
@@ -221,7 +223,7 @@ void GameState::endRound()
             nextRoundFirst = i;
         }
     }
-    for (unsigned int i = 0; i < NUM_PLAYERS; ++i)
+    for (int i = 0; i < numPlayers; ++i)
     {
         // calculates the points scored in the round for each player
         players[i]->setPointsGained(boards[i]->endRound(lid));
@@ -247,7 +249,7 @@ void GameState::loadTurn(std::string playerName)
 {
     bool playerFound = false;
     int i = 0;
-    while (!playerFound && i < NUM_PLAYERS)
+    while (!playerFound && i < numPlayers)
     {
         if (players[i]->getName() == playerName)
         {
