@@ -1,39 +1,52 @@
 #include <random>
 #include "GameState.h"
-GameState::GameState()
+GameState::GameState(int numPlayers, int centreFactories)
 {
+    this->numPlayers = numPlayers;
+    this->centreFactories = centreFactories;
+    if(centreFactories == 2)
+    {
+        this->twoCentreFactories = true;
+    }
+    this->totalFactories = NUM_FACTORIES + centreFactories;
     // Initialises all game pieces
     bag = new Bag();
     lid = new Lid();
 
-    for (int i = 0; i != NUM_FACTORIES; ++i)
+    for (int i = 0; i < totalFactories; ++i)
     {
         factories.push_back(new Factory(i));
     }
 
-    for (int i = 0; i != NUM_PLAYERS; i++)
+    for (int i = 0; i < numPlayers; i++)
     {
         boards.push_back(new Board());
     }
 }
 
-GameState::~GameState() {
-    for(Player* p : players) {
+GameState::~GameState()
+{
+    for (Player *p : players)
+    {
         delete p;
     }
 
-    for(Board* b : boards) {
+    for (Board *b : boards)
+    {
         delete b;
     }
 
-    for(Factory* f : factories) {
+    for (Factory *f : factories)
+    {
         delete f;
     }
-    if(bag != nullptr) {
+    if (bag != nullptr)
+    {
         delete bag;
     }
 
-    if(lid != nullptr) {
+    if (lid != nullptr)
+    {
         delete lid;
     }
 }
@@ -41,13 +54,15 @@ GameState::~GameState() {
 void GameState::initializeNewGame(std::vector<std::string> playerNames)
 {
     // Initialize Players
-    for (int i = 0; i != NUM_PLAYERS; ++i)
+    for (int i = 0; i < int(playerNames.size()); ++i)
     {
         players.push_back(new Player(playerNames[i]));
+        //std::cout << "Pushed back " << playerNames[i] << std::endl;
     }
     shuffleBag();
     turn = 0;
     populateFactories();
+    //std::cout << "Populated factories" << std::endl;
     for (Board *b : boards)
     {
         b->initialiseBoard();
@@ -58,11 +73,17 @@ void GameState::populateFactories()
 {
     // Factory 0 gets the first_player tile as its only tile
     factories[0]->addTile(Tile(first_player));
-    // loop initialised to i = 1 as factory 0 has already been dealt with
-    for (int i = 1; i != NUM_FACTORIES; ++i)
+    if(twoCentreFactories)
     {
+        factories[1]->addTile(Tile(first_player));
+    }
+
+    // loop initialised to i = 1 as factory 0 has already been dealt with
+    for (int i = centreFactories; i < totalFactories; ++i)
+    {
+        // std::cout << "adding tiles to factory: " << i << std::endl;
         for (int j = 0; j < FACTORY_MAX_TILES; ++j)
-        {   
+        {
             // If the bag is empty, refill from the box lid
             if (checkEmptyBag())
             {
@@ -76,7 +97,6 @@ void GameState::populateFactories()
         }
     }
 }
-
 
 std::vector<Player *> GameState::getPlayers()
 {
@@ -148,7 +168,7 @@ int GameState::endGame()
         players[i]->setPointsGained(boards[i]->endGame());
         players[i]->addPoints(players[i]->getPointsGained());
     }
-    
+
     for (int i = 0; i < NUM_PLAYERS; ++i)
     {
         if (players[i]->getPoints() > winningPoints)
@@ -157,8 +177,8 @@ int GameState::endGame()
             winner = i;
         }
         else if (players[i]->getPoints() == winningPoints)
-        { 
-            // If a player has the same amount of points as the previous top 
+        {
+            // If a player has the same amount of points as the previous top
             // scorer, set a draw
             winner = DRAW;
         }
@@ -177,8 +197,8 @@ int GameState::endGame()
                     winner = i;
                 }
                 else if (boards[i]->getCompleteRows() == winningRows)
-                {   
-                    // If all top scorers have the same amount of rows 
+                {
+                    // If all top scorers have the same amount of rows
                     // complete, it's a draw
                     winner = DRAW;
                 }
@@ -190,7 +210,7 @@ int GameState::endGame()
 
 void GameState::endRound()
 {
-    // First player token is always accounted for, but for safety if is somehow 
+    // First player token is always accounted for, but for safety if is somehow
     // 'lost', set the turn to the first player.
     int nextRoundFirst = 0;
     for (unsigned int i = 0; i < NUM_PLAYERS; ++i)
@@ -274,7 +294,7 @@ bool GameState::checkEmptyBag()
 
 void GameState::refillBag()
 {
-    bag->addLidToBag(lid->get(0), lid->size(),lid->getTail());
+    bag->addLidToBag(lid->get(0), lid->size(), lid->getTail());
     lid->emptyLid();
 }
 
@@ -342,5 +362,32 @@ void GameState::shuffleBag()
         {
             shuffleComplete = true;
         }
+    }
+}
+
+void GameState::setPlayers(int players)
+{
+    numPlayers = players;
+}
+
+void GameState::setCentreFactories(int factories)
+{
+    centreFactories = factories;
+    totalFactories = centreFactories + NUM_FACTORIES;
+    //std::cout << "Total Factories: " << totalFactories << std::endl;
+}
+
+int GameState::getTotalFactories()
+{
+    return totalFactories;    
+}
+
+void GameState::printBoards()
+{
+    for (int i = 0; i < numPlayers; i++)
+    {
+        std::cout << "Board for " << players[i]->getName() << ":" << std::endl;
+        boards[i]->printBoard();
+        std::cout << std::endl;
     }
 }

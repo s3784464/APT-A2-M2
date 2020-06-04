@@ -11,7 +11,8 @@
 #define DRAW  -1
 // Constants regarding the number of attributes of the game
 #define NUM_PLAYERS     2
-#define NUM_FACTORIES   6
+#define NUM_FACTORIES   5   // non-centre factories
+#define MAX_FACTORIES   7   // 5 factories + 2 centre factories
 #define TOTAL_TILE_PER_COLOUR 20
 #define TOTAL_COLOUR_TILES 100
 
@@ -19,7 +20,7 @@
 // Including players, factories, boards, the box lid and tile bag
 class GameState {
   public:
-    GameState();
+    GameState(int numPlayers, int numFactories);
     ~GameState();
     // Initialises the entities required for a new game of Azul
     void initializeNewGame(std::vector<std::string> playerNames);
@@ -36,6 +37,16 @@ class GameState {
     // Sets the turn to the player based on the index input
     void setTurn(int turn);
     int getTurn();
+
+    //  sets the number of players in the game
+    void setPlayers(int players);
+    //  sets the number of centre factories in the game
+    void setCentreFactories(int factories);
+    //  returns the total amount of factories
+    int getTotalFactories();
+    // Print the board of every player to console
+    void printBoards();
+
     // Checks whether the conditions for a round to end have been met
     bool roundFinished();
     // Checks whether the conditions for a game to end have been met
@@ -67,6 +78,17 @@ class GameState {
     // The seed of the game
     int seed;
     bool seedEntered;
+
+    // Number of players in the current game
+    int numPlayers = -1;
+    // Number of center factories in the current game
+    int centreFactories = -1;
+    // Number of factories + centre factories
+    int totalFactories = -1;
+    // Whether there are two centre factories
+    bool twoCentreFactories = false;
+
+
     // Pseudorandomly generates an order for the bag based on the seed
     // Pseudorandomly Generates its own seed if none was input at runtime
     void shuffleBag();
@@ -76,7 +98,6 @@ class GameState {
     bool checkEmptyBag();
     // Fills the bag from box lid
     void refillBag();
-
 };
 
 #endif //GAME_STATE_H

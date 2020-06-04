@@ -10,12 +10,14 @@ bool seedEntered = false;
 int seed = 0;
 int mode;
 int numPlayers = -1;
-int numFactories = -1;
+int centreFactories = -1;
 
 enum Command
 {
     save,
     turn,
+    help,
+    boards,
     unknown
 };
 
@@ -235,13 +237,12 @@ bool newGame()
 
         if (tempValidFactories >= 1 && tempValidFactories <= 2)
         {
-            numFactories = tempValidFactories;
+            centreFactories = tempValidFactories;
             validFactories = true;
-            std::cout << "Number of factories: " << numFactories << std::endl;
         }
         else
         {
-            std::cout << "Enter a value from 1 to 2 (" << tempValidFactories << " is invalid)" << std::endl
+            std::cout << "Enter a value of 1 or 2 (" << tempValidFactories << " is invalid)" << std::endl
                       << "> ";
         }
     }
@@ -256,14 +257,14 @@ bool newGame()
     * }
     */
 
-
     //update game state
     if (!gameExit)
     {
-        GameState *gameState = new GameState();
+        GameState *gameState = new GameState(numPlayers, centreFactories);
         gameState->setSeedEntered(seedEntered, seed);
         gameState->initializeNewGame(playerNames);
         //start game
+        std::cout << "gameState functions finished, running game" << std::endl;
         gameExit = runGame(gameState);
         delete gameState;
     }
@@ -301,7 +302,7 @@ bool loadGame()
         }
         else
         {
-            GameState *gameState = new GameState();
+            GameState *gameState = new GameState(numPlayers, centreFactories);
             Persistence *persistence = new Persistence(saveFileName);
             bool loadSuccess = persistence->loadGame(gameState);
             delete persistence;
@@ -384,11 +385,19 @@ bool runGame(GameState *gameState)
                 {
                     command = save;
                 }
+                else if (moveChoice == "help")
+                {
+                    command = help;
+                }
+                else if (moveChoice == "boards")
+                {
+                    command = boards;
+                }
                 else
                 {
                     std::cin.clear();
                     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-                    std::cout << "Invalid command. Valid commands are: turn, save" << std::endl
+                    std::cout << "Invalid command. Valid commands are: turn, save, boards, help" << std::endl
                               << "> ";
                 }
                 if (command == turn)
@@ -428,6 +437,24 @@ bool runGame(GameState *gameState)
                                       << "> ";
                         }
                     }
+                }
+                else if (command == help)
+                {
+                    //TODO
+                    //help commands
+                    std::cout << "Available commands are: " << std::endl
+                              << "Turn [factory] [colour] [row] [centreFactory]" << std::endl
+                              << "save [filename]" << std::endl
+                              << "boards" << std::endl
+                              << "> ";
+                }
+                else if (command == boards)
+                {
+                    //TODO
+                    //printing all player boards
+                    std::cout << "printing all boards in line... WIP" << std::endl;
+                    gameState->printBoards();
+                    std::cout << "> ";
                 }
             }
         }
@@ -606,7 +633,7 @@ bool playTurn(GameState *gameState, int playerTurn, bool *gameExit)
 bool validFactoryChoice(GameState *gameState, int factoryChoice, Colour *colour)
 {
     bool validFactory = true;
-    if (factoryChoice < 0 || factoryChoice >= NUM_FACTORIES)
+    if (factoryChoice < 0 || factoryChoice >= gameState->getTotalFactories())
     {
         validFactory = false;
     }
