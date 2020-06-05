@@ -1,4 +1,5 @@
 #include <random>
+#include <iomanip>
 #include "GameState.h"
 GameState::GameState(int numPlayers, int centreFactories)
 {
@@ -70,9 +71,11 @@ void GameState::populateFactories()
     // Factory 0 gets the first_player tile as its only tile
     factories[0]->addTile(Tile(first_player));
 
-    //WIP firstPlayer
+    // if there are two centre factories
+
     if (twoCentreFactories())
     {
+        // add another first player token to second factory
         factories[1]->addTile(Tile(first_player));
     }
 
@@ -235,7 +238,6 @@ void GameState::loadPlayer(std::string playerName)
 {
     players.push_back(new Player(playerName));
     boards.push_back(new Board());
-    //WIP
 }
 
 void GameState::loadPoints(int index, int points)
@@ -390,9 +392,29 @@ void GameState::printBoards()
 {
     for (int i = 0; i < numPlayers; i++)
     {
-        std::cout << "Board for " << players[i]->getName() << ":" << std::endl;
+        std::cout << "Board for \u001b[35m" << players[i]->getName() << "\u001b[0m:" << std::endl;
         boards[i]->printBoard();
         std::cout << std::endl;
+    }
+}
+
+void GameState::printBoardsHorizontal()
+{
+    for (int j = 0; j < numPlayers; j++)
+    {
+        std::cout << "Board for \u001b[35m" << std::left << std::setfill(' ') << std::setw(15) << players[j]->getName().substr(0,15) << "\u001b[0m";
+        std::cout << "\t\t";
+    }
+    std::cout << std::setw(0) << std::endl;
+
+    for (int k = 0; k < NUM_ROWS + 1; k++)
+    {
+        for (int j = 0; j < numPlayers; j++)
+        {
+            boards[j]->printRow(k);
+            std::cout << "\t\t";
+        }
+        std::cout << std::right <<  std::endl;
     }
 }
 

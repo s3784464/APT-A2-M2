@@ -338,7 +338,7 @@ bool runGame(GameState *gameState)
                 roundFinished = false;
             }
             std::cout << std::endl
-                      << "Turn for Player: " << playerName << std::endl;
+                      << "Turn for Player: \u001b[35m" << playerName << "\u001b[0m" << std::endl;
             std::cout << "Factories:" << std::endl;
             //Print current factory state for each factory
             for (Factory *f : gameState->getFactories())
@@ -349,10 +349,10 @@ bool runGame(GameState *gameState)
             }
 
             //Print current board for player
-            std::cout << "\nMosaic for " << playerName << ':' << std::endl;
+            std::cout << "\nMosaic for \u001b[35m" << playerName << "\u001b[0m" << std::endl;
             gameState->getBoards()[playerTurn]->printBoard();
 
-            std::cout << "\nEnter your move " << playerName << std::endl
+            std::cout << "\nEnter your move \u001b[35m" << playerName << "\u001b[0m" <<  std::endl
                       << "> ";
         }
 
@@ -454,10 +454,8 @@ bool runGame(GameState *gameState)
                 }
                 else if (command == boards)
                 {
-                    //TODO
                     //printing all player boards
-                    std::cout << "printing all boards in line... WIP" << std::endl;
-                    gameState->printBoards();
+                    gameState->printBoardsHorizontal();
                     std::cout << "> ";
                 }
             }

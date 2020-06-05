@@ -50,6 +50,8 @@ class GameState {
     int getTotalFactories();
     // Print the board of every player to console
     void printBoards();
+    // Horizontally prints the board of every player to console
+    void printBoardsHorizontal();
     //returns true if using 2 centre factories
     bool twoCentreFactories();
 

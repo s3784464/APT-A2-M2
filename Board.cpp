@@ -1,4 +1,5 @@
 #include "Board.h"
+#include <iomanip>
 
 Board::Board()
 {
@@ -499,6 +500,45 @@ void Board::printBoard()
         std::cout << " " << tileColour(tile.printColour());
     }
     std::cout << std::endl;
+}
+
+void Board::printRow(int rowNo)
+{
+    if (rowNo < 5)
+    {
+        std::cout << rowNo + 1 << ": ";
+
+        // Prints leading white space
+        for (unsigned int j = 0; j != NUM_ROWS - rows[rowNo].size(); j++)
+        {
+            std::cout << " "
+                      << " ";
+        }
+        // Prints tiles in each row
+        for (unsigned int k = rows[rowNo].size(); k > 0; k--)
+        {
+            std::cout << tileColour(rows.at(rowNo).at(k - 1).printColour()) << " ";
+        }
+
+        //separate storage from mosaic
+        std::cout << "|| ";
+
+        //print mosaic row tiles;
+        for (int j = 0; j != NUM_MOSAIC_COLUMNS; j++)
+        {
+            std::cout << tileColour(mosaic[rowNo][j].printColour()) << " ";
+        }
+    }
+
+    if (rowNo == 5)
+    {
+        std::cout << "broken:";
+        for (Tile tile : broken_tiles)
+        {
+            std::cout << " " << tileColour(tile.printColour());
+        }
+        std::cout << std::setw(25);
+    }
 }
 
 // populates an empty mosaic and player rows

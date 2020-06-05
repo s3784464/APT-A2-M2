@@ -78,6 +78,9 @@ class Board {
     bool occupiedMosaicPosition(int i, int j);
     // Moves a row selected from a factory straight to the broken tiles
     void moveTilesToBrokenTiles(Row row, Lid* lid);
+
+    //prints a single row of the board
+    void printRow(int rowNo);
     
   private:
     // Holds all 'broken' tiles (the floor line)
