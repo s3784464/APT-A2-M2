@@ -71,10 +71,10 @@ void GameState::populateFactories()
     factories[0]->addTile(Tile(first_player));
 
     //WIP firstPlayer
-    // if(twoCentreFactories)
-    // {
-    //     factories[1]->addTile(Tile(first_player));
-    // }
+    if (twoCentreFactories())
+    {
+        factories[1]->addTile(Tile(first_player));
+    }
 
     // loop initialised to i = 1 as factory 0 has already been dealt with
     for (int i = centreFactories; i < totalFactories; ++i)
@@ -377,7 +377,7 @@ void GameState::setCentreFactories(int factories)
 
 int GameState::getTotalFactories()
 {
-    return totalFactories;    
+    return totalFactories;
 }
 
 void GameState::printBoards()
@@ -393,9 +393,36 @@ void GameState::printBoards()
 bool GameState::twoCentreFactories()
 {
     bool twoFactories = false;
-    if(factories.size() == MAX_FACTORIES)
+    if (factories.size() == MAX_FACTORIES)
     {
         twoFactories = true;
     }
     return twoFactories;
+}
+
+int GameState::getNumCentreFactories()
+{
+    return centreFactories;
+}
+
+void GameState::removeFirstPlayerTokens()
+{
+    if (twoCentreFactories())
+    {
+        if (getFactories()[0]->getAllTiles().size() > 0)
+        {
+            if (getFactories()[0]->getTileAt(0).getColour() == first_player)
+            {
+                getFactories()[0]->getTiles(first_player);
+            }
+        }
+        
+        if (getFactories()[1]->getAllTiles().size() > 0)
+        {
+            if (getFactories()[1]->getTileAt(0).getColour() == first_player)
+            {
+                getFactories()[1]->getTiles(first_player);
+            }
+        }
+    }
 }

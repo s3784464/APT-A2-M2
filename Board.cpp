@@ -78,6 +78,65 @@ void Board::addFactoryTilesToRow(Row factoryRow, int rowNumber, Lid *lid)
     factoryRow.clear();
 }
 
+//for two centre factories
+void Board::addFactoryTilesToRow2(Row row, int rowNumber, Lid *lid, Row centreFactory1, Row centreFactory2)
+{
+    if (row.at(0).getColour() == first_player)
+    {
+        addBrokenTile(row.at(0), lid);
+        //removes first player tile from both centre factories
+        if (centreFactory1.at(0).getColour() == first_player)
+        {
+            std::cout <<"factory 0[0]:" << centreFactory1.at(0).getColour();
+            //std::cout << "factory 1 thingo" << std::endl;
+            centreFactory1.erase(centreFactory1.begin());
+            std::cout <<"factory 0[0]:" << centreFactory1[0].getColour();
+        }
+        if (centreFactory2.at(0).getColour() == first_player)
+        {
+            std::cout <<"factory 1[0]:" << centreFactory2[0].getColour();
+            centreFactory2.erase(centreFactory2.begin());
+            std::cout <<"factory 1[0]:" << centreFactory2[0].getColour();
+        }
+    }
+    std::cout <<"factory 0[0]:" << centreFactory1.at(0).getColour();
+    std::cout <<"factory 1[0]:" << centreFactory2.at(0).getColour();
+
+    Row tempRow = rows.at(rowNumber - 1); //we want to keep the existing tiles that aren't "no_tile" there
+    rows.at(rowNumber - 1).clear();       //clears the row
+
+    //add the old tiles EXCLUDING no_tiles back to the row
+    for (Tile tile : tempRow)
+    {
+        if (tile.getColour() != no_tile)
+        {
+            rows.at(rowNumber - 1).push_back(tile);
+        }
+    }
+
+    for (Tile t : row)
+    {
+        //if there is room, add the chosen tiles to the row 
+        if (rows.at(rowNumber - 1).size() != (unsigned int)rowNumber)
+        {
+            rows.at(rowNumber - 1).push_back(row.front());
+        }
+        //else no more room, add to brokenTiles
+        else
+        {
+            addBrokenTile(t, lid);
+        }
+    }
+    //fill the remaining space with no_tile '.'
+    while (rows.at(rowNumber - 1).size() != (unsigned int)rowNumber)
+    {
+        rows.at(rowNumber - 1).push_back(Tile(no_tile));
+    }
+    row.clear();
+    centreFactory1.clear();
+    centreFactory2.clear();
+}
+
 void Board::addBrokenTile(Tile tile, Lid *lid)
 {
     if (broken_tiles.size() == MAX_BROKEN_TILES)
@@ -424,7 +483,6 @@ int Board::getCompleteRows()
     return completeRows;
 }
 
-
 std::string Board::tileColour(char colour)
 {
     std::string stringColour(1, colour);
@@ -455,7 +513,8 @@ std::string Board::tileColour(char colour)
     {
         colourTile = "\u001b[30m" + stringColour + "\u001b[0m";
     }
-    else{
+    else
+    {
         colourTile = stringColour + "\u001b[0m";
     }
 

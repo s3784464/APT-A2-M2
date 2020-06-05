@@ -32,6 +32,8 @@ bool playTurn(GameState *gameState, int playerTurn, bool *gameExit);
 bool saveGame(GameState *gameState, bool *gameExit);
 // Checks to see if user input for factory chosen is a valid command
 bool validFactoryChoice(GameState *gameState, int factoryChoice, Colour *colour);
+// Checks to see if chosen centre factory exists
+bool validCentreFactory(GameState *gameState, int factoryChoice);
 
 // Checks to see if user input for tile colour chosen is a valid command
 bool validColourInput(char colourChar, Colour *colour);
@@ -454,7 +456,7 @@ bool runGame(GameState *gameState)
                         turn = "turn [Factory] [Colour] [Row] [CentreFactory]";
                     }
                     std::cout << "Available commands are: " << std::endl
-                              <<  turn << std::endl
+                              << turn << std::endl
                               << "save [FileName]" << std::endl
                               << "boards" << std::endl
                               << "> ";
@@ -574,8 +576,20 @@ bool playTurn(GameState *gameState, int playerTurn, bool *gameExit)
     int factoryChoice;
     char colourInput;
     int rowChoice;
+    int centreFactoryChoice;
     bool validTurn = true;
-    std::cin >> factoryChoice >> colourInput >> rowChoice;
+
+    // Two centre factories
+    if (gameState->twoCentreFactories())
+    {
+        std::cin >> factoryChoice >> colourInput >> rowChoice; // >> centreFactoryChoice;
+    }
+    // One centre factory
+    else
+    {
+        std::cin >> factoryChoice >> colourInput >> rowChoice;
+    }
+
     if (checkExit())
     {
         *gameExit = true;
@@ -593,6 +607,7 @@ bool playTurn(GameState *gameState, int playerTurn, bool *gameExit)
         bool validColour = false;
         bool validFactory = false;
         bool validRow = false;
+
         if (validTurn)
         {
             validColour = validColourInput(colourInput, &colourChoice);
@@ -616,18 +631,56 @@ bool playTurn(GameState *gameState, int playerTurn, bool *gameExit)
             {
                 gameState->getBoards()[playerTurn]->moveTilesToBrokenTiles(gameState->getFactories()[factoryChoice]->getTiles(colourChoice), gameState->getLid());
             }
+
+            //if two factories, get factory input
+            bool validCentre = false;
+            if (gameState->twoCentreFactories() && factoryChoice > 1)
+            {
+                std::cin >> centreFactoryChoice;
+                validCentre = validCentreFactory(gameState, centreFactoryChoice);
+                if (!validCentre)
+                {
+                    while (!validCentre)
+                    {
+                        std::cout << "Invalid centre factory '" << centreFactoryChoice << "'" << std::endl;
+                        std::cout << "Enter either 0 or 1" << std::endl;
+                        std::cout << "> ";
+                        std::cin >> centreFactoryChoice;
+                        validCentre = validCentreFactory(gameState, centreFactoryChoice);
+                    }
+                }
+                gameState->getBoards()[playerTurn]->addFactoryTilesToRow(gameState->getFactories()[factoryChoice]->getTiles(colourChoice), rowChoice, gameState->getLid());
+            }
             else
             {
                 gameState->getBoards()[playerTurn]->addFactoryTilesToRow(gameState->getFactories()[factoryChoice]->getTiles(colourChoice), rowChoice, gameState->getLid());
+                gameState->removeFirstPlayerTokens();
             }
-            if (factoryChoice != 0)
+
+            if ((!gameState->twoCentreFactories() && factoryChoice != 0) || (gameState->twoCentreFactories() && factoryChoice > 1))
             {
+                // TWO FACTORIES
+                // If factory chosen wasn't a centre factory, remove all tiles from the factory
+                // and place them in factory[centrefactoryChoice] i.e. factory 0 or 1
+                if (gameState->twoCentreFactories())
+                {
+                    for (Tile t : gameState->getFactories()[factoryChoice]->getAllTiles())
+                    {
+                        gameState->getFactories()[centreFactoryChoice]->addTile(t);
+                    }
+                }
+
+                // SINGLE FACTORY
                 // If factory chosen wasn't 0, remove all tiles from the
                 // factory and place them in factory 0
-                for (Tile t : gameState->getFactories()[factoryChoice]->getAllTiles())
+                else
                 {
-                    gameState->getFactories()[0]->addTile(t);
+                    for (Tile t : gameState->getFactories()[factoryChoice]->getAllTiles())
+                    {
+                        gameState->getFactories()[0]->addTile(t);
+                    }
                 }
+
                 gameState->getFactories()[factoryChoice]->removeAllTiles();
             }
             std::cout << "Turn successful" << std::endl;
@@ -637,7 +690,6 @@ bool playTurn(GameState *gameState, int playerTurn, bool *gameExit)
             }
         }
     }
-
     return validTurn;
 }
 
@@ -711,6 +763,16 @@ bool validColourInput(char colourChar, Colour *colour)
         validColour = false;
     }
     return validColour;
+}
+
+bool validCentreFactory(GameState *gameState, int factoryChoice)
+{
+    bool isValid = false;
+    if (gameState->twoCentreFactories() && factoryChoice <= 1 && factoryChoice >= 0)
+    {
+        isValid = true;
+    }
+    return isValid;
 }
 
 void printRoundResults(GameState *gameState)

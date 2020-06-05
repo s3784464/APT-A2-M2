@@ -38,10 +38,14 @@ class GameState {
     void setTurn(int turn);
     int getTurn();
 
+    void removeFirstPlayerTokens();
+
     //  sets the number of players in the game
     void setPlayers(int players);
     //  sets the number of centre factories in the game
     void setCentreFactories(int factories);
+    //  returns the number of centre factories
+    int getNumCentreFactories();
     //  returns the total amount of factories
     int getTotalFactories();
     // Print the board of every player to console

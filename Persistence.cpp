@@ -5,7 +5,8 @@
 Persistence::Persistence(std::string fileName)
 {
   this->fileName = fileName;
-  for(int i = 0; i != NUM_COLOURS; ++i) {
+  for (int i = 0; i != NUM_COLOURS; ++i)
+  {
     tileColourCount[i] = 0;
   }
 }
@@ -26,6 +27,7 @@ bool Persistence::saveGame(GameState *gameState)
   {
     saveFile << p->getPoints() << std::endl;
   }
+
   // Player turn
   saveFile << gameState->getTurnPlayerName() << std::endl;
 
@@ -38,6 +40,7 @@ bool Persistence::saveGame(GameState *gameState)
     }
     saveFile << std::endl;
   }
+  
   // Player Mosaics
   for (Board *b : gameState->getBoards())
   {
@@ -71,7 +74,7 @@ bool Persistence::saveGame(GameState *gameState)
     }
     saveFile << std::endl;
   }
-  
+
   // Box Lid Tiles
   for (int i = 0; i != gameState->getLid()->size(); i++)
   {
@@ -104,7 +107,7 @@ bool Persistence::loadGame(GameState *gameState)
   validLoadFile();
   std::ifstream loadFile(fileName);
   std::string loadLine = "";
-  
+
   // Player Names
   if (validLoad)
   {
@@ -138,13 +141,15 @@ bool Persistence::loadGame(GameState *gameState)
         if (convertStringToInt(loadLine, &points))
         {
           // Checks to see if points are < 0, which is not allowed in game rules
-          if(points < 0) {
+          if (points < 0)
+          {
             validLoad = false;
             invalidLoadMessage = "Invalid Load: points were negative";
-          } else {
+          }
+          else
+          {
             gameState->loadPoints(i, points);
           }
-          
         }
         else
         {
@@ -154,7 +159,6 @@ bool Persistence::loadGame(GameState *gameState)
     }
   }
 
- 
   // Player turn
   if (validLoad)
   {
@@ -188,36 +192,49 @@ bool Persistence::loadGame(GameState *gameState)
         validInput = validTile(loadStream, &colour);
         if (validInput)
         {
-          if(!validFactoryOrBrokenTile(colour)) {
+          if (!validFactoryOrBrokenTile(colour))
+          {
             validLoad = false;
             invalidLoadMessage = "Invalid Load: Factory contains incorrect tile";
-          } else {
+          }
+          else
+          {
             // Checks for factory 0 special case
-            if(f->getNumber() != 0) {
-              // Checks whether the first player token is in a factory it 
+            if (f->getNumber() != 0)
+            {
+              // Checks whether the first player token is in a factory it
               // shouldn't be
-              if(colour == first_player) {
+              if (colour == first_player)
+              {
                 validLoad = false;
-                 invalidLoadMessage = "Invalid Load: Only Factory 0 can contain the first player token";
-              } else {
-                // If it's not the first player token, increment the number of 
+                invalidLoadMessage = "Invalid Load: Only Factory 0 can contain the first player token";
+              }
+              else
+              {
+                // If it's not the first player token, increment the number of
                 // tiles in the factory
                 ++factoryTileCount;
               }
-            } else if(colour == first_player) {
-              if(!firstPlayerTokenFound) {
+            }
+            else if (colour == first_player)
+            {
+              if (!firstPlayerTokenFound)
+              {
                 firstPlayerTokenFound = true;
-              } else {
+              }
+              else
+              {
                 validLoad = false;
                 invalidLoadMessage = "Invalid Load: Multiple first player tokens found";
               }
             }
-            if(validLoad) {
+            if (validLoad)
+            {
               // if tile is valid, load it into the factory
               f->addTile(colour);
             }
           }
-        } 
+        }
       }
       if (factoryTileCount > FACTORY_MAX_TILES)
       {
@@ -227,9 +244,11 @@ bool Persistence::loadGame(GameState *gameState)
       loadStream.clear();
     }
   }
- 
-  if(validLoad) {
-    if(gameState->roundFinished()) {
+
+  if (validLoad)
+  {
+    if (gameState->roundFinished())
+    {
       validLoad = false;
       invalidLoadMessage = "Invalid Load: Round not ongoing";
     }
@@ -250,12 +269,14 @@ bool Persistence::loadGame(GameState *gameState)
         {
           Colour colour = unrecognised;
           validInput = validTile(loadStream, &colour);
-          if(validInput)
+          if (validInput)
           {
-            if(!validMosaicTile(colour)) {
+            if (!validMosaicTile(colour))
+            {
               validLoad = false;
               invalidLoadMessage = "Invalid Load: Mosaic contains incorrect tile";
-            } else if (mosaicRowTileCount == NUM_MOSAIC_COLUMNS)
+            }
+            else if (mosaicRowTileCount == NUM_MOSAIC_COLUMNS)
             {
               validLoad = false;
               invalidLoadMessage = "Invalid Load: Mosaic has too many tiles";
@@ -266,18 +287,22 @@ bool Persistence::loadGame(GameState *gameState)
               b->setMosaicPosition(i, mosaicRowTileCount, new Tile(colour));
               ++mosaicRowTileCount;
             }
-          } 
+          }
         }
         loadStream.clear();
       }
-      if(validLoad) {
+      if (validLoad)
+      {
         bool mosaicValid = validMosaic(b);
-        if(!mosaicValid) {
+        if (!mosaicValid)
+        {
           validLoad = false;
-          invalidLoadMessage = "Invalid Load: Mosaic not correct format";        
-        } else if(b->checkGameEnd()) {
+          invalidLoadMessage = "Invalid Load: Mosaic not correct format";
+        }
+        else if (b->checkGameEnd())
+        {
           validLoad = false;
-          invalidLoadMessage = "Invalid Load: Game Already Complete";    
+          invalidLoadMessage = "Invalid Load: Game Already Complete";
         }
       }
     }
@@ -301,11 +326,12 @@ bool Persistence::loadGame(GameState *gameState)
           validInput = validTile(loadStream, &colour);
           if (validInput)
           {
-            if(!validRowTile(colour)) {
+            if (!validRowTile(colour))
+            {
               validLoad = false;
               invalidLoadMessage = "Invalid Load: Row contains incorrect tile";
-
-            } else if (rowTileCount > i)
+            }
+            else if (rowTileCount > i)
             {
               validLoad = false;
               invalidLoadMessage = "Invalid Load: Row has too many tiles";
@@ -315,18 +341,24 @@ bool Persistence::loadGame(GameState *gameState)
               row.push_back(Tile(colour));
               ++rowTileCount;
             }
-          } 
+          }
         }
         if (validLoad)
         {
-          if(validRow(row)) {
-            if(validRowMosaicLine(b, row, i)) {
+          if (validRow(row))
+          {
+            if (validRowMosaicLine(b, row, i))
+            {
               b->addRow(row);
-            } else {
+            }
+            else
+            {
               validLoad = false;
               invalidLoadMessage = "Invalid Load: Mosaic already has colour at row position";
             }
-          } else {
+          }
+          else
+          {
             validLoad = false;
             invalidLoadMessage = "Invalid Load: Row is in incorrect format";
           }
@@ -352,18 +384,25 @@ bool Persistence::loadGame(GameState *gameState)
         validInput = validTile(loadStream, &colour);
         if (validInput)
         {
-          if(!validFactoryOrBrokenTile(colour)) {
+          if (!validFactoryOrBrokenTile(colour))
+          {
             validLoad = false;
             invalidLoadMessage = "Invalid Load: Broken tiles contains incorrect tile";
-          } else if (brokenTileCount == MAX_BROKEN_TILES)
+          }
+          else if (brokenTileCount == MAX_BROKEN_TILES)
           {
             validLoad = false;
             invalidLoadMessage = "Invalid Load: Too many broken tiles";
-          } else if(firstPlayerTokenFound && colour == first_player) {
+          }
+          else if (firstPlayerTokenFound && colour == first_player)
+          {
             validLoad = false;
             invalidLoadMessage = "Invalid Load: Multiple first player tokens found";
-          } else {
-            if(colour == first_player) {
+          }
+          else
+          {
+            if (colour == first_player)
+            {
               firstPlayerTokenFound = true;
             }
             b->loadBrokenTile(Tile(colour));
@@ -375,15 +414,16 @@ bool Persistence::loadGame(GameState *gameState)
     }
   }
   // check to see if the first player token was found
-  if(validLoad) {
-    if(!firstPlayerTokenFound) {
+  if (validLoad)
+  {
+    if (!firstPlayerTokenFound)
+    {
       validLoad = false;
       invalidLoadMessage = "Invalid Load: First player token was not found";
     }
-
   }
   // Box Lid
-  if(validLoad)
+  if (validLoad)
   {
     std::getline(loadFile, loadLine);
     std::stringstream loadStream(loadLine);
@@ -394,9 +434,12 @@ bool Persistence::loadGame(GameState *gameState)
       validInput = validTile(loadStream, &colour);
       if (validInput)
       {
-        if(validColourTile(colour)) {
+        if (validColourTile(colour))
+        {
           gameState->getLid()->addBack(new Tile(colour));
-        } else {
+        }
+        else
+        {
           validLoad = false;
           invalidLoadMessage = "Invalid Load: Lid contains incorrect tile";
         }
@@ -404,7 +447,6 @@ bool Persistence::loadGame(GameState *gameState)
     }
     loadStream.clear();
   }
-
 
   //  Bag
   if (validLoad)
@@ -418,20 +460,23 @@ bool Persistence::loadGame(GameState *gameState)
       validInput = validTile(loadStream, &colour);
       if (validInput)
       {
-        if(validColourTile(colour)) {
+        if (validColourTile(colour))
+        {
           gameState->getBag()->addBack(new Tile(colour));
-        } else {
+        }
+        else
+        {
           validLoad = false;
           invalidLoadMessage = "Invalid Load: Bag contains incorrect tile";
         }
-        
       }
     }
     loadStream.clear();
   }
 
   // Final check of tile amounts
-  if(validLoad && !finalColourTileCount()) {
+  if (validLoad && !finalColourTileCount())
+  {
     validLoad = false;
     invalidLoadMessage = "Invalid Load: Incorrect Number of tiles";
   }
@@ -516,59 +561,72 @@ Colour Persistence::convertCharToColour(char colourChar)
   return colour;
 }
 
-bool Persistence::validColourTile(Colour colour) {
+bool Persistence::validColourTile(Colour colour)
+{
   bool validTile = false;
-  if(colour == Red || colour == Yellow || colour == Dark_Blue || colour == Light_Blue || colour == Black) {
+  if (colour == Red || colour == Yellow || colour == Dark_Blue || colour == Light_Blue || colour == Black)
+  {
     validTile = true;
   }
   return validTile;
 }
 
-
-bool Persistence::validFactoryOrBrokenTile(Colour colour) {
+bool Persistence::validFactoryOrBrokenTile(Colour colour)
+{
   bool validTile = false;
-  if(colour == first_player || validColourTile(colour)) {
+  if (colour == first_player || validColourTile(colour))
+  {
     validTile = true;
   }
   return validTile;
 }
-bool Persistence::validMosaic(Board* board) {
+bool Persistence::validMosaic(Board *board)
+{
   bool validMosaic = true;
   int i = 0;
-  while(validMosaic && i != NUM_ROWS * NUM_MOSAIC_COLUMNS) {
+  while (validMosaic && i != NUM_ROWS * NUM_MOSAIC_COLUMNS)
+  {
     validMosaic = validMosaicPosition(board, i);
     ++i;
-    
   }
   return validMosaic;
 }
 
-bool Persistence::validRow(Row row) {
+bool Persistence::validRow(Row row)
+{
   bool validRow = true;
   unsigned int i = 0;
-  while(validRow && i != row.size()) {
+  while (validRow && i != row.size())
+  {
     Colour colour = row[i].getColour();
-    if(colour != no_tile){
+    if (colour != no_tile)
+    {
       unsigned int j = 0;
-      while(validRow && j != i) {
-        if(row[j].getColour() != colour) {
+      while (validRow && j != i)
+      {
+        if (row[j].getColour() != colour)
+        {
           validRow = false;
         }
         ++j;
       }
     }
-      ++i;
-    }
+    ++i;
+  }
   return validRow;
 }
 
-bool Persistence::validRowMosaicLine(Board* board, Row row, int rowNumber) {
+bool Persistence::validRowMosaicLine(Board *board, Row row, int rowNumber)
+{
   bool validRow = true;
   Colour colour = row[0].getColour();
-  if(colour != no_tile) {
+  if (colour != no_tile)
+  {
     int i = 0;
-    while(validRow && i != NUM_MOSAIC_COLUMNS) {
-      if(colour == board->getMosaicPosition(rowNumber, i).getColour()) {
+    while (validRow && i != NUM_MOSAIC_COLUMNS)
+    {
+      if (colour == board->getMosaicPosition(rowNumber, i).getColour())
+      {
         validRow = false;
       }
       ++i;
@@ -577,7 +635,8 @@ bool Persistence::validRowMosaicLine(Board* board, Row row, int rowNumber) {
   return validRow;
 }
 
-bool Persistence::validMosaicPosition(Board* board, int position) {
+bool Persistence::validMosaicPosition(Board *board, int position)
+{
   bool validPosition = true;
   // gives the 'x' value of the position in the array
   int row = position / NUM_MOSAIC_COLUMNS;
@@ -585,41 +644,59 @@ bool Persistence::validMosaicPosition(Board* board, int position) {
   int column = position % NUM_MOSAIC_COLUMNS;
   // gives the value of the colour that a mosaic position is required to be
   int expectedColour = (position - row) % NUM_MOSAIC_COLUMNS;
-  Colour tileColour = board->getMosaicPosition(row,column).getColour();
-  if(expectedColour == BOARD_RED_POSITION) {
-    if(tileColour != Red && tileColour != board_Red) {
+  Colour tileColour = board->getMosaicPosition(row, column).getColour();
+  if (expectedColour == BOARD_RED_POSITION)
+  {
+    if (tileColour != Red && tileColour != board_Red)
+    {
       validPosition = false;
-    } 
-  } else if(expectedColour == BOARD_YELLOW_POSITION) {
-    if(tileColour != Yellow && tileColour != board_Yellow) {
+    }
+  }
+  else if (expectedColour == BOARD_YELLOW_POSITION)
+  {
+    if (tileColour != Yellow && tileColour != board_Yellow)
+    {
       validPosition = false;
-    } 
-  } else if(expectedColour == BOARD_DARK_BLUE_POSITION) {
-    if(tileColour != Dark_Blue && tileColour != board_Dark_Blue) {
+    }
+  }
+  else if (expectedColour == BOARD_DARK_BLUE_POSITION)
+  {
+    if (tileColour != Dark_Blue && tileColour != board_Dark_Blue)
+    {
       validPosition = false;
-    } 
-  } else if(expectedColour == BOARD_LIGHT_BLUE_POSITION) {
-    if(tileColour != Light_Blue && tileColour != board_Light_Blue) {
+    }
+  }
+  else if (expectedColour == BOARD_LIGHT_BLUE_POSITION)
+  {
+    if (tileColour != Light_Blue && tileColour != board_Light_Blue)
+    {
       validPosition = false;
-    } 
-  } else if(expectedColour == BOARD_BLACK_POSITION) {
-    if(tileColour != Black && tileColour != board_Black) {
+    }
+  }
+  else if (expectedColour == BOARD_BLACK_POSITION)
+  {
+    if (tileColour != Black && tileColour != board_Black)
+    {
       validPosition = false;
-    } 
-  } 
+    }
+  }
   return validPosition;
 }
-bool Persistence::validMosaicTile(Colour colour) {
+bool Persistence::validMosaicTile(Colour colour)
+{
   bool validTile = false;
-  if(validColourTile(colour)|| colour == board_Red || colour == board_Yellow || colour == board_Dark_Blue || colour == board_Light_Blue || colour == board_Black) {
+  if (validColourTile(colour) || colour == board_Red || colour == board_Yellow || colour == board_Dark_Blue || colour == board_Light_Blue || colour == board_Black)
+  {
     validTile = true;
   }
   return validTile;
 }
 
-bool Persistence::validRowTile(Colour colour) {
+bool Persistence::validRowTile(Colour colour)
+{
   bool validTile = false;
-  if(colour == no_tile || validColourTile(colour)) {
+  if (colour == no_tile || validColourTile(colour))
+  {
     validTile = true;
   }
   return validTile;
@@ -716,14 +793,18 @@ bool Persistence::validTileColour(Colour colour)
   return success;
 }
 
-bool Persistence::finalColourTileCount() {
+bool Persistence::finalColourTileCount()
+{
   bool validAmount = true;
-  if(totalTileCount != TOTAL_COLOUR_TILES) {
+  if (totalTileCount != TOTAL_COLOUR_TILES)
+  {
     validAmount = false;
   }
   int i = 0;
-  while(validAmount && i != NUM_COLOURS) {
-    if(tileColourCount[i] != TOTAL_TILE_PER_COLOUR) {
+  while (validAmount && i != NUM_COLOURS)
+  {
+    if (tileColourCount[i] != TOTAL_TILE_PER_COLOUR)
+    {
       validAmount = false;
     }
     ++i;
