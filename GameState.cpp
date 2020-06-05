@@ -234,6 +234,8 @@ void GameState::endRound()
 void GameState::loadPlayer(std::string playerName)
 {
     players.push_back(new Player(playerName));
+    boards.push_back(new Board());
+    //WIP
 }
 
 void GameState::loadPoints(int index, int points)
@@ -368,11 +370,15 @@ void GameState::setPlayers(int players)
     numPlayers = players;
 }
 
-void GameState::setCentreFactories(int factories)
+void GameState::setCentreFactories(int numFactories)
 {
-    centreFactories = factories;
+    centreFactories = numFactories;
     totalFactories = centreFactories + NUM_FACTORIES;
     //std::cout << "Total Factories: " << totalFactories << std::endl;
+    for (int i = factories.size(); i < totalFactories; ++i)
+    {
+        factories.push_back(new Factory(i));
+    }
 }
 
 int GameState::getTotalFactories()
@@ -416,7 +422,7 @@ void GameState::removeFirstPlayerTokens()
                 getFactories()[0]->getTiles(first_player);
             }
         }
-        
+
         if (getFactories()[1]->getAllTiles().size() > 0)
         {
             if (getFactories()[1]->getTileAt(0).getColour() == first_player)

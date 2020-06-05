@@ -16,6 +16,12 @@ bool Persistence::saveGame(GameState *gameState)
   bool success = false;
   std::ofstream saveFile(fileName);
 
+  //amount of players
+  saveFile << gameState->getPlayers().size() << std::endl;
+
+  //amount of factories
+  saveFile << gameState->getNumCentreFactories() << std::endl;
+
   // Player Names
   for (Player *p : gameState->getPlayers())
   {
@@ -40,7 +46,7 @@ bool Persistence::saveGame(GameState *gameState)
     }
     saveFile << std::endl;
   }
-  
+
   // Player Mosaics
   for (Board *b : gameState->getBoards())
   {
@@ -108,10 +114,55 @@ bool Persistence::loadGame(GameState *gameState)
   std::ifstream loadFile(fileName);
   std::string loadLine = "";
 
-  // Player Names
+  int numPlayers = -1;
+  int numCentreFactories = -1;
+
   if (validLoad)
   {
-    for (int i = 0; i != NUM_PLAYERS; ++i)
+    //amount of players
+    std::getline(loadFile, loadLine);
+    try
+    {
+      numPlayers = std::stoi(loadLine);
+      if (numPlayers > 1 && numPlayers <= 4)
+      {
+        gameState->setPlayers(numPlayers);
+      }
+      else
+      {
+        validLoad = false;
+        std::cout << "Invalid Load: invalid number of players" << std::endl;
+      }
+    }
+    catch (std::invalid_argument const &e)
+    {
+      validLoad = false;
+      std::cout << "Invalid Load: entered number of players is not an integer" << std::endl;
+    }
+
+    //number of centre factories
+    std::getline(loadFile, loadLine);
+    try
+    {
+      numCentreFactories = std::stoi(loadLine);
+      if (numCentreFactories > 0 && numCentreFactories <= 2)
+      {
+        gameState->setCentreFactories(numCentreFactories);
+      }
+      else
+      {
+        validLoad = false;
+        std::cout << "Invalid Load: invalid number of centre factories" << std::endl;
+      }
+    }
+    catch (std::invalid_argument const &e)
+    {
+      validLoad = false;
+      std::cout << "Invalid Load: entered number of factories is not an integer" << std::endl;
+    }
+
+    // Player Names
+    for (int i = 0; i < numPlayers; ++i)
     {
       if (validLoad)
       {
@@ -132,7 +183,7 @@ bool Persistence::loadGame(GameState *gameState)
   // Player Points
   if (validLoad)
   {
-    for (int i = 0; i != NUM_PLAYERS; ++i)
+    for (int i = 0; i < numPlayers; ++i)
     {
       if (validLoad)
       {
@@ -177,6 +228,7 @@ bool Persistence::loadGame(GameState *gameState)
   // As tiles are now to be added, initialize variables to track them
   totalTileCount = 0;
   bool firstPlayerTokenFound = false;
+  bool firstPlayerToken2Found = false;
   // Factories
   if (validLoad)
   {
@@ -200,15 +252,35 @@ bool Persistence::loadGame(GameState *gameState)
           else
           {
             // Checks for factory 0 special case
-            if (f->getNumber() != 0)
+            if (f->getNumber() > 0)
             {
-              // Checks whether the first player token is in a factory it
-              // shouldn't be
-              if (colour == first_player)
+              // Checks for factory 0 or 1 special case with two centre factories
+              if (gameState->getNumCentreFactories() == 2 )
+              {
+                if(f->getNumber()>1)
+                {
+                  if (colour == first_player)
+                  {
+                      validLoad = false;
+                      invalidLoadMessage = "Invalid Load: Only Factory 0 can contain the first player token";
+                  }
+                  else
+                  {
+                    // If it's not the first player token, increment the number of
+                    // tiles in the factory
+                    ++factoryTileCount;
+                  }
+                }
+              }
+
+              // When using one centre factory
+              // Checks whether the first player token is in a factory it shouldn't be
+              else if (colour == first_player)
               {
                 validLoad = false;
                 invalidLoadMessage = "Invalid Load: Only Factory 0 can contain the first player token";
               }
+                
               else
               {
                 // If it's not the first player token, increment the number of
@@ -222,657 +294,664 @@ bool Persistence::loadGame(GameState *gameState)
               {
                 firstPlayerTokenFound = true;
               }
+              else if (!firstPlayerToken2Found)
+              {
+                firstPlayerToken2Found = true;
+              }
               else
               {
                 validLoad = false;
                 invalidLoadMessage = "Invalid Load: Multiple first player tokens found";
               }
             }
+
             if (validLoad)
             {
               // if tile is valid, load it into the factory
-              f->addTile(colour);
+                f->addTile(colour);
+              }
             }
           }
         }
-      }
-      if (factoryTileCount > FACTORY_MAX_TILES)
-      {
-        validLoad = false;
-        invalidLoadMessage = "Invalid Load: Invalid number of tiles in Factory";
-      }
-      loadStream.clear();
-    }
-  }
-
-  if (validLoad)
-  {
-    if (gameState->roundFinished())
-    {
-      validLoad = false;
-      invalidLoadMessage = "Invalid Load: Round not ongoing";
-    }
-  }
-  // Mosaics
-  if (validLoad)
-  {
-
-    for (Board *b : gameState->getBoards())
-    {
-      for (int i = 0; i != NUM_ROWS; i++)
-      {
-        std::getline(loadFile, loadLine);
-        std::stringstream loadStream(loadLine);
-        int mosaicRowTileCount = 0;
-        bool validInput = true;
-        while (validLoad && validInput)
+        
+        if (factoryTileCount > FACTORY_MAX_TILES)
         {
-          Colour colour = unrecognised;
-          validInput = validTile(loadStream, &colour);
-          if (validInput)
-          {
-            if (!validMosaicTile(colour))
-            {
-              validLoad = false;
-              invalidLoadMessage = "Invalid Load: Mosaic contains incorrect tile";
-            }
-            else if (mosaicRowTileCount == NUM_MOSAIC_COLUMNS)
-            {
-              validLoad = false;
-              invalidLoadMessage = "Invalid Load: Mosaic has too many tiles";
-            }
-            else
-            {
-              // If all checks are valid, load into the mosaic
-              b->setMosaicPosition(i, mosaicRowTileCount, new Tile(colour));
-              ++mosaicRowTileCount;
-            }
-          }
+          validLoad = false;
+          invalidLoadMessage = "Invalid Load: Invalid number of tiles in Factory";
         }
         loadStream.clear();
       }
-      if (validLoad)
+    }
+
+    if (validLoad)
+    {
+      if (gameState->roundFinished())
       {
-        bool mosaicValid = validMosaic(b);
-        if (!mosaicValid)
-        {
-          validLoad = false;
-          invalidLoadMessage = "Invalid Load: Mosaic not correct format";
-        }
-        else if (b->checkGameEnd())
-        {
-          validLoad = false;
-          invalidLoadMessage = "Invalid Load: Game Already Complete";
-        }
+        validLoad = false;
+        invalidLoadMessage = "Invalid Load: Round not ongoing";
       }
     }
-  }
-
-  //Rows
-  if (validLoad)
-  {
-    for (Board *b : gameState->getBoards())
+    // Mosaics
+    if (validLoad)
     {
-      for (int i = 0; i != NUM_ROWS; i++)
+
+      for (Board *b : gameState->getBoards())
       {
-        std::getline(loadFile, loadLine);
-        std::stringstream loadStream(loadLine);
-        int rowTileCount = 0;
-        Row row;
-        bool validInput = true;
-        while (validLoad && validInput)
+        for (int i = 0; i != NUM_ROWS; i++)
         {
-          Colour colour = unrecognised;
-          validInput = validTile(loadStream, &colour);
-          if (validInput)
+          std::getline(loadFile, loadLine);
+          std::stringstream loadStream(loadLine);
+          int mosaicRowTileCount = 0;
+          bool validInput = true;
+          while (validLoad && validInput)
           {
-            if (!validRowTile(colour))
+            Colour colour = unrecognised;
+            validInput = validTile(loadStream, &colour);
+            if (validInput)
             {
-              validLoad = false;
-              invalidLoadMessage = "Invalid Load: Row contains incorrect tile";
-            }
-            else if (rowTileCount > i)
-            {
-              validLoad = false;
-              invalidLoadMessage = "Invalid Load: Row has too many tiles";
-            }
-            else
-            {
-              row.push_back(Tile(colour));
-              ++rowTileCount;
+              if (!validMosaicTile(colour))
+              {
+                validLoad = false;
+                invalidLoadMessage = "Invalid Load: Mosaic contains incorrect tile";
+              }
+              else if (mosaicRowTileCount == NUM_MOSAIC_COLUMNS)
+              {
+                validLoad = false;
+                invalidLoadMessage = "Invalid Load: Mosaic has too many tiles";
+              }
+              else
+              {
+                // If all checks are valid, load into the mosaic
+                b->setMosaicPosition(i, mosaicRowTileCount, new Tile(colour));
+                ++mosaicRowTileCount;
+              }
             }
           }
+          loadStream.clear();
         }
         if (validLoad)
         {
-          if (validRow(row))
+          bool mosaicValid = validMosaic(b);
+          if (!mosaicValid)
           {
-            if (validRowMosaicLine(b, row, i))
+            validLoad = false;
+            invalidLoadMessage = "Invalid Load: Mosaic not correct format";
+          }
+          else if (b->checkGameEnd())
+          {
+            validLoad = false;
+            invalidLoadMessage = "Invalid Load: Game Already Complete";
+          }
+        }
+      }
+    }
+
+    //Rows
+    if (validLoad)
+    {
+      for (Board *b : gameState->getBoards())
+      {
+        for (int i = 0; i != NUM_ROWS; i++)
+        {
+          std::getline(loadFile, loadLine);
+          std::stringstream loadStream(loadLine);
+          int rowTileCount = 0;
+          Row row;
+          bool validInput = true;
+          while (validLoad && validInput)
+          {
+            Colour colour = unrecognised;
+            validInput = validTile(loadStream, &colour);
+            if (validInput)
             {
-              b->addRow(row);
+              if (!validRowTile(colour))
+              {
+                validLoad = false;
+                invalidLoadMessage = "Invalid Load: Row contains incorrect tile";
+              }
+              else if (rowTileCount > i)
+              {
+                validLoad = false;
+                invalidLoadMessage = "Invalid Load: Row has too many tiles";
+              }
+              else
+              {
+                row.push_back(Tile(colour));
+                ++rowTileCount;
+              }
+            }
+          }
+          if (validLoad)
+          {
+            if (validRow(row))
+            {
+              if (validRowMosaicLine(b, row, i))
+              {
+                b->addRow(row);
+              }
+              else
+              {
+                validLoad = false;
+                invalidLoadMessage = "Invalid Load: Mosaic already has colour at row position";
+              }
             }
             else
             {
               validLoad = false;
-              invalidLoadMessage = "Invalid Load: Mosaic already has colour at row position";
+              invalidLoadMessage = "Invalid Load: Row is in incorrect format";
             }
           }
-          else
+          loadStream.clear();
+        }
+      }
+    }
+
+    // Broken Tiles
+    if (validLoad)
+    {
+      for (Board *b : gameState->getBoards())
+      {
+        std::getline(loadFile, loadLine);
+        std::stringstream loadStream(loadLine);
+        int brokenTileCount = 0;
+        bool validInput = true;
+        Row brokenRow;
+        while (validLoad && validInput)
+        {
+          Colour colour = unrecognised;
+          validInput = validTile(loadStream, &colour);
+          if (validInput)
           {
-            validLoad = false;
-            invalidLoadMessage = "Invalid Load: Row is in incorrect format";
+            if (!validFactoryOrBrokenTile(colour))
+            {
+              validLoad = false;
+              invalidLoadMessage = "Invalid Load: Broken tiles contains incorrect tile";
+            }
+            else if (brokenTileCount == MAX_BROKEN_TILES)
+            {
+              validLoad = false;
+              invalidLoadMessage = "Invalid Load: Too many broken tiles";
+            }
+            else if (firstPlayerTokenFound && colour == first_player)
+            {
+              validLoad = false;
+              invalidLoadMessage = "Invalid Load: Multiple first player tokens found";
+            }
+            else
+            {
+              if (colour == first_player)
+              {
+                firstPlayerTokenFound = true;
+              }
+              b->loadBrokenTile(Tile(colour));
+              ++brokenTileCount;
+            }
           }
         }
         loadStream.clear();
       }
     }
-  }
-
-  // Broken Tiles
-  if (validLoad)
-  {
-    for (Board *b : gameState->getBoards())
+    // check to see if the first player token was found
+    if (validLoad)
+    {
+      if (!firstPlayerTokenFound)
+      {
+        validLoad = false;
+        invalidLoadMessage = "Invalid Load: First player token was not found";
+      }
+    }
+    // Box Lid
+    if (validLoad)
     {
       std::getline(loadFile, loadLine);
       std::stringstream loadStream(loadLine);
-      int brokenTileCount = 0;
       bool validInput = true;
-      Row brokenRow;
       while (validLoad && validInput)
       {
         Colour colour = unrecognised;
         validInput = validTile(loadStream, &colour);
         if (validInput)
         {
-          if (!validFactoryOrBrokenTile(colour))
+          if (validColourTile(colour))
           {
-            validLoad = false;
-            invalidLoadMessage = "Invalid Load: Broken tiles contains incorrect tile";
-          }
-          else if (brokenTileCount == MAX_BROKEN_TILES)
-          {
-            validLoad = false;
-            invalidLoadMessage = "Invalid Load: Too many broken tiles";
-          }
-          else if (firstPlayerTokenFound && colour == first_player)
-          {
-            validLoad = false;
-            invalidLoadMessage = "Invalid Load: Multiple first player tokens found";
+            gameState->getLid()->addBack(new Tile(colour));
           }
           else
           {
-            if (colour == first_player)
-            {
-              firstPlayerTokenFound = true;
-            }
-            b->loadBrokenTile(Tile(colour));
-            ++brokenTileCount;
+            validLoad = false;
+            invalidLoadMessage = "Invalid Load: Lid contains incorrect tile";
           }
         }
       }
       loadStream.clear();
     }
-  }
-  // check to see if the first player token was found
-  if (validLoad)
-  {
-    if (!firstPlayerTokenFound)
+
+    //  Bag
+    if (validLoad)
     {
-      validLoad = false;
-      invalidLoadMessage = "Invalid Load: First player token was not found";
-    }
-  }
-  // Box Lid
-  if (validLoad)
-  {
-    std::getline(loadFile, loadLine);
-    std::stringstream loadStream(loadLine);
-    bool validInput = true;
-    while (validLoad && validInput)
-    {
-      Colour colour = unrecognised;
-      validInput = validTile(loadStream, &colour);
-      if (validInput)
+      std::getline(loadFile, loadLine);
+      std::stringstream loadStream(loadLine);
+      bool validInput = true;
+      while (validLoad && validInput)
       {
-        if (validColourTile(colour))
+        Colour colour = unrecognised;
+        validInput = validTile(loadStream, &colour);
+        if (validInput)
         {
-          gameState->getLid()->addBack(new Tile(colour));
-        }
-        else
-        {
-          validLoad = false;
-          invalidLoadMessage = "Invalid Load: Lid contains incorrect tile";
+          if (validColourTile(colour))
+          {
+            gameState->getBag()->addBack(new Tile(colour));
+          }
+          else
+          {
+            validLoad = false;
+            invalidLoadMessage = "Invalid Load: Bag contains incorrect tile";
+          }
         }
       }
+      loadStream.clear();
     }
-    loadStream.clear();
-  }
 
-  //  Bag
-  if (validLoad)
-  {
-    std::getline(loadFile, loadLine);
-    std::stringstream loadStream(loadLine);
-    bool validInput = true;
-    while (validLoad && validInput)
+    // Final check of tile amounts
+    if (validLoad && !finalColourTileCount())
     {
-      Colour colour = unrecognised;
-      validInput = validTile(loadStream, &colour);
-      if (validInput)
+      //validLoad = false;
+      invalidLoadMessage = "Invalid Load: Incorrect Number of tiles XDDD";
+    }
+
+    // Seed
+    if (validLoad)
+    {
+      std::getline(loadFile, loadLine);
+      int seed = 0;
+      if (convertStringToInt(loadLine, &seed))
       {
-        if (validColourTile(colour))
-        {
-          gameState->getBag()->addBack(new Tile(colour));
-        }
-        else
-        {
-          validLoad = false;
-          invalidLoadMessage = "Invalid Load: Bag contains incorrect tile";
-        }
+        gameState->setSeedEntered(true, seed);
+      }
+      else
+      {
+        invalidLoadMessage = "Invalid Load: Seed was not an integer";
       }
     }
-    loadStream.clear();
-  }
 
-  // Final check of tile amounts
-  if (validLoad && !finalColourTileCount())
-  {
-    validLoad = false;
-    invalidLoadMessage = "Invalid Load: Incorrect Number of tiles";
-  }
-
-  // Seed
-  if (validLoad)
-  {
-    std::getline(loadFile, loadLine);
-    int seed = 0;
-    if (convertStringToInt(loadLine, &seed))
+    if (validLoad)
     {
-      gameState->setSeedEntered(true, seed);
+      std::cout << "Load Successful" << std::endl;
     }
     else
     {
-      invalidLoadMessage = "Invalid Load: Seed was not an integer";
+      std::cout << invalidLoadMessage << std::endl;
     }
+    return validLoad;
   }
 
-  if (validLoad)
+  Colour Persistence::convertCharToColour(char colourChar)
   {
-    std::cout << "Load Successful" << std::endl;
-  }
-  else
-  {
-    std::cout << invalidLoadMessage << std::endl;
-  }
-  return validLoad;
-}
-
-Colour Persistence::convertCharToColour(char colourChar)
-{
-  Colour colour = unrecognised;
-  if (colourChar == RED)
-  {
-    colour = Red;
-  }
-  else if (colourChar == YELLOW)
-  {
-    colour = Yellow;
-  }
-  else if (colourChar == DARK_BLUE)
-  {
-    colour = Dark_Blue;
-  }
-  else if (colourChar == LIGHT_BLUE)
-  {
-    colour = Light_Blue;
-  }
-  else if (colourChar == BLACK)
-  {
-    colour = Black;
-  }
-  else if (colourChar == FIRST_PLAYER)
-  {
-    colour = first_player;
-  }
-  else if (colourChar == BOARD_RED)
-  {
-    colour = board_Red;
-  }
-  else if (colourChar == BOARD_YELLOW)
-  {
-    colour = board_Yellow;
-  }
-  else if (colourChar == BOARD_DARK_BLUE)
-  {
-    colour = board_Dark_Blue;
-  }
-  else if (colourChar == BOARD_LIGHT_BLUE)
-  {
-    colour = board_Light_Blue;
-  }
-  else if (colourChar == BOARD_BLACK)
-  {
-    colour = board_Black;
-  }
-  else if (colourChar == NO_TILE)
-  {
-    colour = no_tile;
-  }
-  return colour;
-}
-
-bool Persistence::validColourTile(Colour colour)
-{
-  bool validTile = false;
-  if (colour == Red || colour == Yellow || colour == Dark_Blue || colour == Light_Blue || colour == Black)
-  {
-    validTile = true;
-  }
-  return validTile;
-}
-
-bool Persistence::validFactoryOrBrokenTile(Colour colour)
-{
-  bool validTile = false;
-  if (colour == first_player || validColourTile(colour))
-  {
-    validTile = true;
-  }
-  return validTile;
-}
-bool Persistence::validMosaic(Board *board)
-{
-  bool validMosaic = true;
-  int i = 0;
-  while (validMosaic && i != NUM_ROWS * NUM_MOSAIC_COLUMNS)
-  {
-    validMosaic = validMosaicPosition(board, i);
-    ++i;
-  }
-  return validMosaic;
-}
-
-bool Persistence::validRow(Row row)
-{
-  bool validRow = true;
-  unsigned int i = 0;
-  while (validRow && i != row.size())
-  {
-    Colour colour = row[i].getColour();
-    if (colour != no_tile)
+    Colour colour = unrecognised;
+    if (colourChar == RED)
     {
-      unsigned int j = 0;
-      while (validRow && j != i)
-      {
-        if (row[j].getColour() != colour)
-        {
-          validRow = false;
-        }
-        ++j;
-      }
+      colour = Red;
     }
-    ++i;
+    else if (colourChar == YELLOW)
+    {
+      colour = Yellow;
+    }
+    else if (colourChar == DARK_BLUE)
+    {
+      colour = Dark_Blue;
+    }
+    else if (colourChar == LIGHT_BLUE)
+    {
+      colour = Light_Blue;
+    }
+    else if (colourChar == BLACK)
+    {
+      colour = Black;
+    }
+    else if (colourChar == FIRST_PLAYER)
+    {
+      colour = first_player;
+    }
+    else if (colourChar == BOARD_RED)
+    {
+      colour = board_Red;
+    }
+    else if (colourChar == BOARD_YELLOW)
+    {
+      colour = board_Yellow;
+    }
+    else if (colourChar == BOARD_DARK_BLUE)
+    {
+      colour = board_Dark_Blue;
+    }
+    else if (colourChar == BOARD_LIGHT_BLUE)
+    {
+      colour = board_Light_Blue;
+    }
+    else if (colourChar == BOARD_BLACK)
+    {
+      colour = board_Black;
+    }
+    else if (colourChar == NO_TILE)
+    {
+      colour = no_tile;
+    }
+    return colour;
   }
-  return validRow;
-}
 
-bool Persistence::validRowMosaicLine(Board *board, Row row, int rowNumber)
-{
-  bool validRow = true;
-  Colour colour = row[0].getColour();
-  if (colour != no_tile)
+  bool Persistence::validColourTile(Colour colour)
   {
+    bool validTile = false;
+    if (colour == Red || colour == Yellow || colour == Dark_Blue || colour == Light_Blue || colour == Black)
+    {
+      validTile = true;
+    }
+    return validTile;
+  }
+
+  bool Persistence::validFactoryOrBrokenTile(Colour colour)
+  {
+    bool validTile = false;
+    if (colour == first_player || validColourTile(colour))
+    {
+      validTile = true;
+    }
+    return validTile;
+  }
+  bool Persistence::validMosaic(Board * board)
+  {
+    bool validMosaic = true;
     int i = 0;
-    while (validRow && i != NUM_MOSAIC_COLUMNS)
+    while (validMosaic && i != NUM_ROWS * NUM_MOSAIC_COLUMNS)
     {
-      if (colour == board->getMosaicPosition(rowNumber, i).getColour())
+      validMosaic = validMosaicPosition(board, i);
+      ++i;
+    }
+    return validMosaic;
+  }
+
+  bool Persistence::validRow(Row row)
+  {
+    bool validRow = true;
+    unsigned int i = 0;
+    while (validRow && i != row.size())
+    {
+      Colour colour = row[i].getColour();
+      if (colour != no_tile)
       {
-        validRow = false;
+        unsigned int j = 0;
+        while (validRow && j != i)
+        {
+          if (row[j].getColour() != colour)
+          {
+            validRow = false;
+          }
+          ++j;
+        }
       }
       ++i;
     }
+    return validRow;
   }
-  return validRow;
-}
 
-bool Persistence::validMosaicPosition(Board *board, int position)
-{
-  bool validPosition = true;
-  // gives the 'x' value of the position in the array
-  int row = position / NUM_MOSAIC_COLUMNS;
-  // gives the 'y' value of the position in the array
-  int column = position % NUM_MOSAIC_COLUMNS;
-  // gives the value of the colour that a mosaic position is required to be
-  int expectedColour = (position - row) % NUM_MOSAIC_COLUMNS;
-  Colour tileColour = board->getMosaicPosition(row, column).getColour();
-  if (expectedColour == BOARD_RED_POSITION)
+  bool Persistence::validRowMosaicLine(Board * board, Row row, int rowNumber)
   {
-    if (tileColour != Red && tileColour != board_Red)
+    bool validRow = true;
+    Colour colour = row[0].getColour();
+    if (colour != no_tile)
     {
-      validPosition = false;
+      int i = 0;
+      while (validRow && i != NUM_MOSAIC_COLUMNS)
+      {
+        if (colour == board->getMosaicPosition(rowNumber, i).getColour())
+        {
+          validRow = false;
+        }
+        ++i;
+      }
     }
+    return validRow;
   }
-  else if (expectedColour == BOARD_YELLOW_POSITION)
-  {
-    if (tileColour != Yellow && tileColour != board_Yellow)
-    {
-      validPosition = false;
-    }
-  }
-  else if (expectedColour == BOARD_DARK_BLUE_POSITION)
-  {
-    if (tileColour != Dark_Blue && tileColour != board_Dark_Blue)
-    {
-      validPosition = false;
-    }
-  }
-  else if (expectedColour == BOARD_LIGHT_BLUE_POSITION)
-  {
-    if (tileColour != Light_Blue && tileColour != board_Light_Blue)
-    {
-      validPosition = false;
-    }
-  }
-  else if (expectedColour == BOARD_BLACK_POSITION)
-  {
-    if (tileColour != Black && tileColour != board_Black)
-    {
-      validPosition = false;
-    }
-  }
-  return validPosition;
-}
-bool Persistence::validMosaicTile(Colour colour)
-{
-  bool validTile = false;
-  if (validColourTile(colour) || colour == board_Red || colour == board_Yellow || colour == board_Dark_Blue || colour == board_Light_Blue || colour == board_Black)
-  {
-    validTile = true;
-  }
-  return validTile;
-}
 
-bool Persistence::validRowTile(Colour colour)
-{
-  bool validTile = false;
-  if (colour == no_tile || validColourTile(colour))
+  bool Persistence::validMosaicPosition(Board * board, int position)
   {
-    validTile = true;
-  }
-  return validTile;
-}
-
-bool Persistence::validTileAmount(Colour colour)
-{
-  bool validTileAmount = true;
-
-  if (colour == Red)
-  {
-    ++tileColourCount[COLOUR_COUNT_RED];
-    ++totalTileCount;
-  }
-  else if (colour == Yellow)
-  {
-    ++tileColourCount[COLOUR_COUNT_YELLOW];
-    ++totalTileCount;
-  }
-  else if (colour == Dark_Blue)
-  {
-    ++tileColourCount[COLOUR_COUNT_DARK_BLUE];
-    ++totalTileCount;
-  }
-  else if (colour == Light_Blue)
-  {
-    ++tileColourCount[COLOUR_COUNT_LIGHT_BLUE];
-    ++totalTileCount;
-  }
-  else if (colour == Black)
-  {
-    ++tileColourCount[COLOUR_COUNT_BLACK];
-    ++totalTileCount;
-  }
-  int i = 0;
-  while (validTileAmount && i < NUM_COLOURS)
-  {
-    if (tileColourCount[i] > TOTAL_TILE_PER_COLOUR)
+    bool validPosition = true;
+    // gives the 'x' value of the position in the array
+    int row = position / NUM_MOSAIC_COLUMNS;
+    // gives the 'y' value of the position in the array
+    int column = position % NUM_MOSAIC_COLUMNS;
+    // gives the value of the colour that a mosaic position is required to be
+    int expectedColour = (position - row) % NUM_MOSAIC_COLUMNS;
+    Colour tileColour = board->getMosaicPosition(row, column).getColour();
+    if (expectedColour == BOARD_RED_POSITION)
     {
-      invalidLoadMessage = "Invalid Load: Incorrect number of Coloured Tiles";
+      if (tileColour != Red && tileColour != board_Red)
+      {
+        validPosition = false;
+      }
+    }
+    else if (expectedColour == BOARD_YELLOW_POSITION)
+    {
+      if (tileColour != Yellow && tileColour != board_Yellow)
+      {
+        validPosition = false;
+      }
+    }
+    else if (expectedColour == BOARD_DARK_BLUE_POSITION)
+    {
+      if (tileColour != Dark_Blue && tileColour != board_Dark_Blue)
+      {
+        validPosition = false;
+      }
+    }
+    else if (expectedColour == BOARD_LIGHT_BLUE_POSITION)
+    {
+      if (tileColour != Light_Blue && tileColour != board_Light_Blue)
+      {
+        validPosition = false;
+      }
+    }
+    else if (expectedColour == BOARD_BLACK_POSITION)
+    {
+      if (tileColour != Black && tileColour != board_Black)
+      {
+        validPosition = false;
+      }
+    }
+    return validPosition;
+  }
+  bool Persistence::validMosaicTile(Colour colour)
+  {
+    bool validTile = false;
+    if (validColourTile(colour) || colour == board_Red || colour == board_Yellow || colour == board_Dark_Blue || colour == board_Light_Blue || colour == board_Black)
+    {
+      validTile = true;
+    }
+    return validTile;
+  }
+
+  bool Persistence::validRowTile(Colour colour)
+  {
+    bool validTile = false;
+    if (colour == no_tile || validColourTile(colour))
+    {
+      validTile = true;
+    }
+    return validTile;
+  }
+
+  bool Persistence::validTileAmount(Colour colour)
+  {
+    bool validTileAmount = true;
+
+    if (colour == Red)
+    {
+      ++tileColourCount[COLOUR_COUNT_RED];
+      ++totalTileCount;
+    }
+    else if (colour == Yellow)
+    {
+      ++tileColourCount[COLOUR_COUNT_YELLOW];
+      ++totalTileCount;
+    }
+    else if (colour == Dark_Blue)
+    {
+      ++tileColourCount[COLOUR_COUNT_DARK_BLUE];
+      ++totalTileCount;
+    }
+    else if (colour == Light_Blue)
+    {
+      ++tileColourCount[COLOUR_COUNT_LIGHT_BLUE];
+      ++totalTileCount;
+    }
+    else if (colour == Black)
+    {
+      ++tileColourCount[COLOUR_COUNT_BLACK];
+      ++totalTileCount;
+    }
+    int i = 0;
+    while (validTileAmount && i < NUM_COLOURS)
+    {
+      if (tileColourCount[i] > TOTAL_TILE_PER_COLOUR)
+      {
+        invalidLoadMessage = "Invalid Load: Incorrect number of Coloured Tiles";
+        validLoad = false;
+        validTileAmount = false;
+      }
+      ++i;
+    }
+
+    if (validTileAmount && (totalTileCount > TOTAL_COLOUR_TILES))
+    {
+      invalidLoadMessage = "Invalid Load: Incorrect Number of tiles";
       validLoad = false;
       validTileAmount = false;
     }
-    ++i;
+    return validTileAmount;
   }
 
-  if (validTileAmount && (totalTileCount > TOTAL_COLOUR_TILES))
+  bool Persistence::validTile(std::stringstream & loadStream, Colour * colour)
   {
-    invalidLoadMessage = "Invalid Load: Incorrect Number of tiles";
-    validLoad = false;
-    validTileAmount = false;
-  }
-  return validTileAmount;
-}
-
-bool Persistence::validTile(std::stringstream &loadStream, Colour *colour)
-{
-  bool validInput = true;
-  bool validTile = false;
-  char inputChar = ' ';
-  loadStream >> inputChar;
-  if (loadStream.eof())
-  {
-    validInput = false;
-  }
-  if (validInput && loadStream.fail())
-  {
-    invalidLoadMessage = "Invalid Load: Unrecognised Tile";
-    validInput = false;
-    validLoad = false;
-  }
-
-  if (validInput)
-  {
-    *colour = convertCharToColour(inputChar);
-    validTile = validTileColour(*colour);
-  }
-  return validTile;
-}
-
-bool Persistence::validTileColour(Colour colour)
-{
-  bool success = false;
-  if (colour == unrecognised)
-  {
-    validLoad = false;
-    invalidLoadMessage = "Invalid Load: Unrecognised Tile";
-  }
-  else
-  {
-    success = validTileAmount(colour);
-  }
-
-  return success;
-}
-
-bool Persistence::finalColourTileCount()
-{
-  bool validAmount = true;
-  if (totalTileCount != TOTAL_COLOUR_TILES)
-  {
-    validAmount = false;
-  }
-  int i = 0;
-  while (validAmount && i != NUM_COLOURS)
-  {
-    if (tileColourCount[i] != TOTAL_TILE_PER_COLOUR)
+    bool validInput = true;
+    bool validTile = false;
+    char inputChar = ' ';
+    loadStream >> inputChar;
+    if (loadStream.eof())
     {
-      validAmount = false;
+      validInput = false;
     }
-    ++i;
-  }
-  return validAmount;
-}
-
-bool Persistence::searchPlayerName(std::vector<Player *> players, std::string name)
-{
-  bool playerFound = false;
-  for (Player *p : players)
-  {
-    if (p->getName() == name)
+    if (validInput && loadStream.fail())
     {
-      playerFound = true;
+      invalidLoadMessage = "Invalid Load: Unrecognised Tile";
+      validInput = false;
+      validLoad = false;
     }
-  }
-  return playerFound;
-}
 
-bool Persistence::convertStringToInt(std::string input, int *inputInt)
-{
-  bool successfulConvert = false;
-  try
-  {
-    *inputInt = std::stoi(input);
-    successfulConvert = true;
-  }
-  catch (const std::invalid_argument &e)
-  {
-    validLoad = false;
-  }
-  catch (const std::out_of_range &e)
-  {
-    validLoad = false;
-  }
-
-  return successfulConvert;
-}
-
-void Persistence::validLoadFile()
-{
-  bool correctFileLength = false;
-  std::ifstream loadFile(fileName);
-  std::string loadLine = "";
-  int lineCount = 0;
-  bool linesExceeded = false;
-  while (!linesExceeded && !loadFile.eof())
-  {
-    if (lineCount == LOAD_FILE_LENGTH)
+    if (validInput)
     {
-      linesExceeded = true;
+      *colour = convertCharToColour(inputChar);
+      validTile = validTileColour(*colour);
+    }
+    return validTile;
+  }
+
+  bool Persistence::validTileColour(Colour colour)
+  {
+    bool success = false;
+    if (colour == unrecognised)
+    {
+      validLoad = false;
+      invalidLoadMessage = "Invalid Load: Unrecognised Tile";
     }
     else
     {
-      std::getline(loadFile, loadLine);
-      ++lineCount;
+      success = validTileAmount(colour);
     }
-  }
-  loadFile.close();
-  if (lineCount == LOAD_FILE_LENGTH)
-  {
-    correctFileLength = true;
+
+    return success;
   }
 
-  if (!correctFileLength)
+  bool Persistence::finalColourTileCount()
   {
-    validLoad = false;
-    invalidLoadMessage = "Invalid Load: Load file incorrect size";
+    bool validAmount = true;
+    if (totalTileCount != TOTAL_COLOUR_TILES)
+    {
+      validAmount = false;
+      std::cout << "totalTileCount: " << totalTileCount << std::endl;
+    }
+    int i = 0;
+    while (validAmount && i != NUM_COLOURS)
+    {
+      if (tileColourCount[i] != TOTAL_TILE_PER_COLOUR)
+      {
+        validAmount = false;
+      }
+      ++i;
+    }
+    return validAmount;
   }
-}
+
+  bool Persistence::searchPlayerName(std::vector<Player *> players, std::string name)
+  {
+    bool playerFound = false;
+    for (Player *p : players)
+    {
+      if (p->getName() == name)
+      {
+        playerFound = true;
+      }
+    }
+    return playerFound;
+  }
+
+  bool Persistence::convertStringToInt(std::string input, int *inputInt)
+  {
+    bool successfulConvert = false;
+    try
+    {
+      *inputInt = std::stoi(input);
+      successfulConvert = true;
+    }
+    catch (const std::invalid_argument &e)
+    {
+      validLoad = false;
+    }
+    catch (const std::out_of_range &e)
+    {
+      validLoad = false;
+    }
+
+    return successfulConvert;
+  }
+
+  void Persistence::validLoadFile()
+  {
+    bool correctFileLength = false;
+    std::ifstream loadFile(fileName);
+    std::string loadLine = "";
+    int lineCount = 0;
+    bool linesExceeded = false;
+    while (!linesExceeded && !loadFile.eof())
+    {
+      if (lineCount == LOAD_FILE_LENGTH)
+      {
+        linesExceeded = true;
+      }
+      else
+      {
+        std::getline(loadFile, loadLine);
+        ++lineCount;
+      }
+    }
+    loadFile.close();
+    if (lineCount == LOAD_FILE_LENGTH)
+    {
+      correctFileLength = true;
+    }
+
+    if (!correctFileLength)
+    {
+      validLoad = false;
+      invalidLoadMessage = "Invalid Load: Load file incorrect size";
+    }
+  }

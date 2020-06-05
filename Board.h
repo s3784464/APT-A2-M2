@@ -58,8 +58,6 @@ class Board {
     void addRow(Row row);
     // Adds tiles from a factory onto the board
     void addFactoryTilesToRow(Row row, int rowNumber, Lid* lid);
-    // Adds tiles from a factory onto the board(when there are two centre factories)
-    void addFactoryTilesToRow2(Row row, int rowNumber, Lid *lid, Row centreFactory1, Row centreFactory2);
     // Adds a tile directly to the broken tiles (if there is space)
     void addBrokenTile(Tile tile, Lid* lid);
     // Checks whether a row selected by a user is part of a valid move

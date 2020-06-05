@@ -250,15 +250,6 @@ bool newGame()
     }
     //END getNumberFactories()
 
-    /* TODO  
-    * If( numFactories==2 )
-    * {
-    *   When playing a turn from a ’normal’ factory, the user must choose which of the 2 centre factories in which to place the excess tiles.
-    *   A user may choose to select tiles (following standard rules) from either one of the 2 centre factories
-    *   The first player to draw from any centre factory receives the first player marker.
-    * }
-    */
-
     //update game state
     if (!gameExit)
     {
