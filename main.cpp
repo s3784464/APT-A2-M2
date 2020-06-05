@@ -169,7 +169,6 @@ bool newGame()
         {
             numPlayers = tempNumPlayers;
             validPlayers = true;
-            //std::cout << "Number of players: " << numPlayers << std::endl;
         }
         else
         {
@@ -328,8 +327,8 @@ bool runGame(GameState *gameState)
     }
     while (!gameEnd && !gameExit && !testComplete)
     {
-        int playerTurn = gameState->getTurn();
-        std::string playerName = gameState->getPlayers()[playerTurn]->getName();
+        //int playerTurn = gameState->getTurn();
+        std::string playerName = gameState->getPlayers()[gameState->getTurn()]->getName();
         if (mode != TEST)
         {
             if (roundFinished)
@@ -350,7 +349,7 @@ bool runGame(GameState *gameState)
 
             //Print current board for player
             std::cout << "\nMosaic for \u001b[35m" << playerName << "\u001b[0m" << std::endl;
-            gameState->getBoards()[playerTurn]->printBoard();
+            gameState->getBoards()[gameState->getTurn()]->printBoard();
 
             std::cout << "\nEnter your move \u001b[35m" << playerName << "\u001b[0m" <<  std::endl
                       << "> ";
@@ -395,7 +394,7 @@ bool runGame(GameState *gameState)
                 }
                 if (command == turn)
                 {
-                    if (playTurn(gameState, playerTurn, &gameExit))
+                    if (playTurn(gameState, gameState->getTurn(), &gameExit))
                     {
                         validTurn = true;
                     }
@@ -441,13 +440,13 @@ bool runGame(GameState *gameState)
                 }
                 else if (command == help)
                 {
-                    std::string turn = "turn [Factory] [Colour] [Row]";
+                    std::string turnString = "turn [Factory] [Colour] [Row]";
                     if (gameState->twoCentreFactories())
                     {
-                        turn = "turn [Factory] [Colour] [Row] [CentreFactory]";
+                        turnString = "turn [Factory] [Colour] [Row] [CentreFactory]";
                     }
                     std::cout << "Available commands are: " << std::endl
-                              << turn << std::endl
+                              << turnString << std::endl
                               << "save [FileName]" << std::endl
                               << "boards" << std::endl
                               << "> ";
@@ -464,12 +463,12 @@ bool runGame(GameState *gameState)
         if (!gameExit && !testComplete)
         {
             //changes turn to next player, keeping it within numPlayers
-            playerTurn = (playerTurn + 1) % numPlayers;
-            gameState->setTurn(playerTurn);
+            int turnTemp = (gameState->getTurn() + 1) % gameState->getPlayers().size();
+            gameState->setTurn(turnTemp);
             roundFinished = gameState->roundFinished();
+            
             if (roundFinished)
             {
-
                 gameState->endRound();
                 if (mode != TEST)
                 {
@@ -571,7 +570,7 @@ bool playTurn(GameState *gameState, int playerTurn, bool *gameExit)
     // Two centre factories
     if (gameState->twoCentreFactories())
     {
-        std::cin >> factoryChoice >> colourInput >> rowChoice; // >> centreFactoryChoice;
+        std::cin >> factoryChoice >> colourInput >> rowChoice;
     }
     // One centre factory
     else

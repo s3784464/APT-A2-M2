@@ -405,16 +405,19 @@ void GameState::printBoardsHorizontal()
         std::cout << "Board for \u001b[35m" << std::left << std::setfill(' ') << std::setw(15) << players[j]->getName().substr(0,15) << "\u001b[0m";
         std::cout << "\t\t";
     }
-    std::cout << std::setw(0) << std::endl;
+    std::cout << std::endl;
 
     for (int k = 0; k < NUM_ROWS + 1; k++)
     {
         for (int j = 0; j < numPlayers; j++)
         {
             boards[j]->printRow(k);
-            std::cout << "\t\t";
+            if(k < 5)
+            {
+                std::cout << "\t\t";
+            } 
         }
-        std::cout << std::right <<  std::endl;
+        std::cout << std::right << std::setfill('0') << std::setw(0) << std::endl;
     }
 }
 

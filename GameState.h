@@ -94,7 +94,6 @@ class GameState {
     // Number of factories + centre factories
     int totalFactories = -1;
 
-
     // Pseudorandomly generates an order for the bag based on the seed
     // Pseudorandomly Generates its own seed if none was input at runtime
     void shuffleBag();

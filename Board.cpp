@@ -530,14 +530,17 @@ void Board::printRow(int rowNo)
         }
     }
 
+    
     if (rowNo == 5)
-    {
-        std::cout << "broken:";
+    {   
+        int tiles = 0;
+        std::cout << "broken:" << std::left;     
         for (Tile tile : broken_tiles)
         {
             std::cout << " " << tileColour(tile.printColour());
+            tiles = tiles + 2;
         }
-        std::cout << std::setw(25);
+        std::cout << std::right << std::setfill(' ') << std::setw(20 - tiles) << "\t\t";
     }
 }
 
